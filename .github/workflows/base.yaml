@@ -33,4 +33,4 @@ jobs:
         run: docker login -u ${{ secrets.DOCKER_LOGIN }} -p ${{ secrets.DOCKER_PASSWORD }} docker.io
 
       - name: Push docker image
-        run: docker push ravr-backend:v0.0.1
+        run: docker push fastrapier1/ravr-backend:v0.0.1
