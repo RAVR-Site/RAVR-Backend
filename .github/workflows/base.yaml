@@ -28,3 +28,9 @@ jobs:
 
       - name: See package
         run: ls -la
+
+      - name: Docker login
+        run: docker login -u {{ secrets.DOCKER_USERNAME }} -p {{ secrets.DOCKER_PASSWORD }} docker.io
+
+      - name: Push docker image
+        run: docker push ravr-backend:v0.0.1
