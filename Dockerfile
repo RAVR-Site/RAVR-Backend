@@ -5,4 +5,4 @@ WORKDIR /app
 
 COPY target/*.jar /app/app.jar
 
-ENTRYPOINT ["java", "/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
