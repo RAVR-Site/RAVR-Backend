@@ -21,7 +21,7 @@ jobs:
         run: mvn -B package --file pom.xml
 
       - name: Build docker image
-        run: docker build -t ravr-backend:v0.0.1 .
+        run: docker build -t fastrapier1/ravr-backend:v0.0.1 .
 
       - name: View docker images
         run: docker images
