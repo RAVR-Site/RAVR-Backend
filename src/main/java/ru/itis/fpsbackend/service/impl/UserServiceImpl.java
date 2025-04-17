@@ -5,6 +5,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.itis.fpsbackend.dto.UserRegisterRequest;
 import ru.itis.fpsbackend.dto.UserResponse;
+import ru.itis.fpsbackend.exception.BusinessException;
 import ru.itis.fpsbackend.model.User;
 import ru.itis.fpsbackend.repository.UserRepository;
 import ru.itis.fpsbackend.service.UserService;
@@ -20,6 +21,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse registerUser(UserRegisterRequest request) {
+        // Проверка существования пользователя с таким именем
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new BusinessException("Пользователь с таким именем уже существует");
+        }
+
+        // Проверка существования пользователя с таким email
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new BusinessException("Пользователь с таким email уже существует");
+        }
+
         // Хеширование пароля
         String hashedPassword = passwordEncoder.encode(request.getPassword());
 

@@ -1,5 +1,5 @@
 CREATE TABLE tokens (
-    id BIGINT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     access_token TEXT NOT NULL,
     refresh_token TEXT NOT NULL,

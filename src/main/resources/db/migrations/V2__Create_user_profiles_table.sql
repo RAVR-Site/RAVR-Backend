@@ -1,5 +1,5 @@
 CREATE TABLE user_profiles (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL UNIQUE,
     first_name VARCHAR(255),
     last_name VARCHAR(255),
