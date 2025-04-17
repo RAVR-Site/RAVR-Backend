@@ -28,7 +28,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String[] PUBLIC_URLS = {
             "/api/auth/**",
             "/api/public/**",
-            "/actuator/**"
+            "/actuator/**",
+            // Swagger UI и OpenAPI URLs
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/swagger-ui.html",
+            "/webjars/**",
+            "/swagger-resources/**"
     };
     
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
