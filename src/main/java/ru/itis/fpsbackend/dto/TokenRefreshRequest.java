@@ -9,6 +9,6 @@ import lombok.*;
 @Getter
 @Setter
 public class TokenRefreshRequest {
-    @NotBlank(message = "Refresh токен не может быть пустым")
+    @NotBlank(message = "Refresh token cannot be blank")
     private String refreshToken;
 }
