@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    image: fastrapier1/ravr-backend:latest
+    image: fastrapier1/ravr-backend:BCK-8
     ports:
       - "8080:8080"
     depends_on:
