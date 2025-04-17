@@ -1,6 +1,6 @@
 services:
   app:
-    image: fastrapier1/ravr-backend:BCK-11
+    image: fastrapier1/ravr-backend:latest
     ports:
       - "8080:8080"
     depends_on:
