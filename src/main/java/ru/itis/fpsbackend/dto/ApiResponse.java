@@ -1,5 +1,6 @@
 package ru.itis.fpsbackend.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,10 +9,18 @@ import java.time.format.DateTimeFormatter;
 
 @Setter
 @Getter
+@Schema(description = "Стандартный формат ответа API")
 public class ApiResponse<T> {
+    @Schema(description = "Статус успешности операции", example = "true")
     private boolean success;
+    
+    @Schema(description = "Сообщение о результате операции", example = "Операция выполнена успешно")
     private String message;
+    
+    @Schema(description = "Метка времени ответа", example = "2025-04-21T14:30:15.123456")
     private String timestamp;
+    
+    @Schema(description = "Данные ответа (могут отличаться в зависимости от endpoint)")
     private T data;
 
     public ApiResponse() {
