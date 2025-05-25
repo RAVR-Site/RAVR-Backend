@@ -2,13 +2,12 @@ package service
 
 import (
 	"errors"
+	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
-
-	"github.com/Ravr-Site/Ravr-Backend/repository"
 )
 
 type UserService interface {

@@ -1,13 +1,13 @@
-package handler
+package controller
 
 import (
-	"github.com/Ravr-Site/Ravr-Backend/service"
+	"github.com/Ravr-Site/Ravr-Backend/internal/service"
+	"github.com/Ravr-Site/Ravr-Backend/internal/storage"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 
-	"github.com/Ravr-Site/Ravr-Backend/storage"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
@@ -25,14 +25,14 @@ type loginRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
-type UserHandler struct {
+type UserController struct {
 	svc      service.UserService
 	validate *validator.Validate
 	logger   *zap.Logger
 }
 
-func NewUserHandler(svc service.UserService, logger *zap.Logger) *UserHandler {
-	return &UserHandler{svc, validator.New(), logger}
+func NewUserController(svc service.UserService, logger *zap.Logger) *UserController {
+	return &UserController{svc, validator.New(), logger}
 }
 
 // Register @Summary Register user
@@ -42,7 +42,7 @@ func NewUserHandler(svc service.UserService, logger *zap.Logger) *UserHandler {
 // @Param registerRequest body registerRequest true
 // @Success 201 {object} map[string]string
 // @Router /register [post]
-func (h *UserHandler) Register(c echo.Context) error {
+func (h *UserController) Register(c echo.Context) error {
 	var req registerRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
@@ -63,7 +63,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 // @Param loginRequest body loginRequest true
 // @Success 200 {object} map[string]string
 // @Router /login [post]
-func (h *UserHandler) Login(c echo.Context) error {
+func (h *UserController) Login(c echo.Context) error {
 	var req loginRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
@@ -78,7 +78,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{"token": token})
 }
 
-func (h *UserHandler) Profile(c echo.Context) error {
+func (h *UserController) Profile(c echo.Context) error {
 	userToken := c.Get("user").(*jwt.Token)
 	claims := userToken.Claims.(jwt.MapClaims)
 	username := claims["username"].(string)
@@ -89,7 +89,7 @@ func (h *UserHandler) Profile(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{"id": u.ID, "username": u.Username})
 }
 
-func (h *UserHandler) UploadImage(store storage.Storage) echo.HandlerFunc {
+func (h *UserController) UploadImage(store storage.Storage) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		file, err := c.FormFile("image")
 		if err != nil {
