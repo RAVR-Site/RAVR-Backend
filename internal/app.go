@@ -9,6 +9,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/dig"
+	"go.uber.org/zap"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"os"
 )
 
 type Application struct {
@@ -26,6 +30,35 @@ func NewApplication(config *config.Config) *Application {
 }
 
 func (app *Application) Init() error {
+	if err := app.container.Provide(func() (*zap.Logger, error) {
+		env := os.Getenv("ENVIRONMENT")
+		if env == "" {
+			env = "local"
+		}
+
+		if env == "local" {
+			l, err := zap.NewDevelopment()
+			if err != nil {
+				return nil, err
+			}
+			return l, nil
+		}
+
+		l, err := zap.NewProduction()
+		if err != nil {
+			return nil, err // Fallback to no-op logger if production logger fails
+		}
+		return l, nil
+	}); err != nil {
+		return err
+	}
+
+	if err := app.container.Provide(func() (*gorm.DB, error) {
+		return gorm.Open(postgres.Open(app.config.DatabaseDSN), &gorm.Config{})
+	}); err != nil {
+		return err
+	}
+
 	if err := app.container.Provide(func() *echo.Echo {
 		e := echo.New()
 
@@ -69,8 +102,8 @@ func (app *Application) initRepositories() error {
 }
 
 func (app *Application) initServices() error {
-	err := app.container.Provide(func(repo repository.UserRepository) service.UserService {
-		return service.NewUserService(repo, app.config.JWTSecret, nil)
+	err := app.container.Provide(func(repo repository.UserRepository, logger *zap.Logger) service.UserService {
+		return service.NewUserService(repo, app.config.JWTSecret, logger)
 	})
 	if err != nil {
 		return err
@@ -80,8 +113,8 @@ func (app *Application) initServices() error {
 }
 
 func (app *Application) initControllers() error {
-	if err := app.container.Invoke(func(e *echo.Echo, userService service.UserService) {
-		userHandler := controller.NewUserController(userService, nil)
+	if err := app.container.Invoke(func(e *echo.Echo, userService service.UserService, logger *zap.Logger) {
+		userHandler := controller.NewUserController(userService, logger)
 		e.GET("/api/v1/user", userHandler.Profile)
 		e.POST("/api/v1/user/login", userHandler.Login)
 		e.POST("/api/v1/user/register", userHandler.Register)
