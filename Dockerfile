@@ -1,46 +1,45 @@
-# Этап сборки
-FROM maven:3.9.6-eclipse-temurin-21 AS build
-
-WORKDIR /app
-COPY pom.xml .
-# Кеширование зависимостей для ускорения последующих сборок
-RUN mvn dependency:go-offline -B
-
-COPY src ./src
-COPY checkstyle.xml ./checkstyle.xml
-RUN mvn package -B -DskipTests
-
-# Этап запуска
-FROM eclipse-temurin:21-jre-alpine AS runtime
-
-LABEL maintainer="fastrapier"
-LABEL application="ravr-backend"
-
-# Установка wget для HEALTHCHECK
-RUN apk add --no-cache wget
-
-# Создание непривилегированного пользователя
-RUN addgroup --system --gid 1001 appuser && \
-    adduser --system --uid 1001 --ingroup appuser appuser
+FROM golang:1.24 AS builder
 
 WORKDIR /app
 
-# Предоставление переменных среды для настройки JVM
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+# Копируем go.mod и go.sum для кеширования зависимостей
+COPY go.mod go.sum ./
+RUN go mod download
 
-# Копирование JAR-файла из этапа сборки
-COPY --from=build /app/target/*.jar /app/app.jar
+# Копируем исходники
+COPY . .
 
-# Установка прав на файлы
-RUN chown -R appuser:appuser /app
-USER appuser
+# Устанавливаем swag для генерации документации
+RUN go install github.com/swaggo/swag/cmd/swag@latest
 
-# Указание порта, который использует приложение
+# Генерируем Swagger-документацию из директории cmd
+WORKDIR /app/cmd
+RUN $(go env GOPATH)/bin/swag init --output ../docs
+
+# Возвращаемся в корневую директорию и собираем приложение
+WORKDIR /app
+RUN CGO_ENABLED=0 go build -o app ./cmd
+
+# Финальный образ на базе Alpine
+FROM alpine:3.19
+
+# Устанавливаем необходимые зависимости
+RUN apk --no-cache add ca-certificates tzdata
+
+WORKDIR /app
+
+# Копируем бинарник, документацию и конфигурационный файл
+COPY --from=builder /app/app .
+COPY --from=builder /app/docs/swagger.json ./docs/swagger.json
+COPY --from=builder /app/docs/swagger.yaml ./docs/swagger.yaml
+
+# Копируем все конфигурационные файлы
+COPY config/.env.* /app/config/
+
+# Создаем непривилегированного пользователя
+RUN mkdir -p /app/config && chown -R 1000:1000 /app
+USER 1000:1000
+
 EXPOSE 8080
 
-# Проверка работоспособности приложения
-HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
-  CMD wget -q --spider http://localhost:8080/actuator/health || exit 1
-
-# Запуск приложения
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+CMD ["./app"]
