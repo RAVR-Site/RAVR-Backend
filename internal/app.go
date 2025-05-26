@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
@@ -114,6 +115,8 @@ func (app *Application) initServices() error {
 
 func (app *Application) initControllers() error {
 	if err := app.container.Invoke(func(e *echo.Echo, userService service.UserService, logger *zap.Logger) {
+		e.GET("/swagger/*", echoSwagger.WrapHandler)
+
 		userHandler := controller.NewUserController(userService, logger)
 		e.GET("/api/v1/user", userHandler.Profile)
 		e.POST("/api/v1/user/login", userHandler.Login)

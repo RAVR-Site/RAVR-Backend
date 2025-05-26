@@ -1,0 +1,45 @@
+FROM golang:1.24 AS builder
+
+WORKDIR /app
+
+# Копируем go.mod и go.sum для кеширования зависимостей
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Копируем исходники
+COPY . .
+
+# Устанавливаем swag для генерации документации
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
+# Генерируем Swagger-документацию из директории cmd
+WORKDIR /app/cmd
+RUN $(go env GOPATH)/bin/swag init --output ../docs
+
+# Возвращаемся в корневую директорию и собираем приложение
+WORKDIR /app
+RUN CGO_ENABLED=0 go build -o app ./cmd
+
+# Финальный образ на базе Alpine
+FROM alpine:3.19
+
+# Устанавливаем необходимые зависимости
+RUN apk --no-cache add ca-certificates tzdata
+
+WORKDIR /app
+
+# Копируем бинарник, документацию и конфигурационный файл
+COPY --from=builder /app/app .
+COPY --from=builder /app/docs/swagger.json ./docs/swagger.json
+COPY --from=builder /app/docs/swagger.yaml ./docs/swagger.yaml
+
+# Копируем все конфигурационные файлы
+COPY config/.env.* /app/config/
+
+# Создаем непривилегированного пользователя
+RUN mkdir -p /app/config && chown -R 1000:1000 /app
+USER 1000:1000
+
+EXPOSE 8080
+
+CMD ["./app"]
