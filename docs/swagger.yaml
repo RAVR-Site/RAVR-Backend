@@ -10,8 +10,8 @@ definitions:
         example: johndoe
         type: string
     required:
-      - password
-      - username
+    - password
+    - username
     type: object
   controller.registerRequest:
     description: Запрос на регистрацию нового пользователя
@@ -25,8 +25,8 @@ definitions:
         minLength: 3
         type: string
     required:
-      - password
-      - username
+    - password
+    - username
     type: object
   responses.ErrorInfo:
     properties:
@@ -39,7 +39,7 @@ definitions:
     type: object
   responses.Response:
     properties:
-      data: { }
+      data: {}
       error:
         $ref: '#/definitions/responses.ErrorInfo'
       success:
@@ -63,10 +63,10 @@ paths:
   /lessons:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Возвращает список всех уроков
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -78,21 +78,21 @@ paths:
             $ref: '#/definitions/responses.Response'
       summary: Получение всех уроков
       tags:
-        - lessons
+      - lessons
   /lessons/{id}:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Возвращает детальную информацию об уроке по его ID, включая полные
         данные урока
       parameters:
-        - description: ID урока
-          in: path
-          name: id
-          required: true
-          type: integer
+      - description: ID урока
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -112,20 +112,20 @@ paths:
             $ref: '#/definitions/responses.Response'
       summary: Получение детальной информации урока
       tags:
-        - lessons
+      - lessons
   /lessons/type/{type}:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Возвращает список всех уроков указанного типа
       parameters:
-        - description: Тип урока
-          in: path
-          name: type
-          required: true
-          type: string
+      - description: Тип урока
+        in: path
+        name: type
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -141,14 +141,14 @@ paths:
             $ref: '#/definitions/responses.Response'
       summary: Получение уроков по типу
       tags:
-        - lessons
+      - lessons
   /lessons/types:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Возвращает список всех уникальных типов уроков
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -160,14 +160,14 @@ paths:
             $ref: '#/definitions/responses.Response'
       summary: Получение типов уроков
       tags:
-        - lessons
+      - lessons
   /user:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Возвращает данные текущего аутентифицированного пользователя
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -182,24 +182,24 @@ paths:
           schema:
             $ref: '#/definitions/responses.Response'
       security:
-        - ApiKeyAuth: [ ]
+      - ApiKeyAuth: []
       summary: Профиль пользователя
       tags:
-        - user
+      - user
   /user/login:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Аутентифицирует пользователя и возвращает JWT токен
       parameters:
-        - description: Учетные данные
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: '#/definitions/controller.loginRequest'
+      - description: Учетные данные
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.loginRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -215,21 +215,21 @@ paths:
             $ref: '#/definitions/responses.Response'
       summary: Вход в систему
       tags:
-        - auth
+      - auth
   /user/register:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Создает нового пользователя с указанными учетными данными
       parameters:
-        - description: Данные для регистрации
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: '#/definitions/controller.registerRequest'
+      - description: Данные для регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.registerRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
@@ -241,7 +241,7 @@ paths:
             $ref: '#/definitions/responses.Response'
       summary: Регистрация нового пользователя
       tags:
-        - auth
+      - auth
 securityDefinitions:
   ApiKeyAuth:
     in: header
