@@ -145,7 +145,7 @@ jobs:
         run: yes | migrate -path migrations -database "postgres://postgres:postgres@localhost:5432/test_db?sslmode=disable" up
 
       - name: Verify migrations can be rolled back
-        run: migrate -path migrations -database "postgres://postgres:postgres@localhost:5432/test_db?sslmode=disable" down
+        run: migrate -path migrations -database "postgres://postgres:postgres@localhost:5432/test_db?sslmode=disable" down -f
 
   swagger-check:
     name: Validate Swagger
