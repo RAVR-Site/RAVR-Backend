@@ -60,7 +60,7 @@ func TestUserService_Login_Success(t *testing.T) {
 	token, err := svc.Login("user", "pass")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
-	parsed, _ := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) { return []byte("secret"), nil })
+	parsed, _ := jwt.Parse(token, func(_ *jwt.Token) (interface{}, error) { return []byte("secret"), nil })
 	assert.True(t, parsed.Valid)
 }
 

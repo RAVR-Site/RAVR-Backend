@@ -135,7 +135,10 @@ func (h *UserController) UploadImage(store storage.Storage) echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, responses.ErrorResponse("FILE_CREATION_ERROR", err.Error()))
 		}
 		defer dst.Close()
-		io.Copy(dst, src)
+		
+		if _, err := io.Copy(dst, src); err != nil {
+			return c.JSON(http.StatusInternalServerError, responses.ErrorResponse("FILE_COPY_ERROR", err.Error()))
+		}
 
 		// store via storage interface
 		if err := store.Save("uploads", filename); err != nil {

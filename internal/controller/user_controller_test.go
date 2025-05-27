@@ -32,13 +32,6 @@ func (m *mockUserService) GetByUsername(username string) (*repository.User, erro
 	return nil, args.Error(1)
 }
 
-type mockStorage struct{ mock.Mock }
-
-func (m *mockStorage) Save(folder, filename string) error {
-	args := m.Called(folder, filename)
-	return args.Error(0)
-}
-
 func TestRegister_Success(t *testing.T) {
 	e := echo.New()
 	ms := new(mockUserService)

@@ -55,7 +55,7 @@ func (app *Application) Init() error {
 		return err
 	}
 
-	if err := app.container.Provide(func(logger *zap.Logger) (*gorm.DB, error) {
+	if err := app.container.Provide(func(_ *zap.Logger) (*gorm.DB, error) {
 		db, err := gorm.Open(postgres.Open(app.config.DatabaseDSN), &gorm.Config{})
 		if err != nil {
 			return nil, err
