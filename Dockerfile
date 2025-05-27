@@ -13,12 +13,11 @@ COPY . .
 RUN go install github.com/swaggo/swag/cmd/swag@latest
 
 # Генерируем Swagger-документацию из директории cmd
-WORKDIR /app/cmd
-RUN $(go env GOPATH)/bin/swag init --output ../docs
+
+RUN $(go env GOPATH)/bin/swag init -g ./cmd/main.go --output ../docs
 
 # Возвращаемся в корневую директорию и собираем приложение
-WORKDIR /app
-RUN CGO_ENABLED=0 go build -o app ./cmd
+RUN CGO_ENABLED=0 go build -o app ./cmd/main.go
 
 # Финальный образ на базе Alpine
 FROM alpine:3.19
@@ -30,8 +29,8 @@ WORKDIR /app
 
 # Копируем бинарник, документацию и конфигурационный файл
 COPY --from=builder /app/app .
-COPY --from=builder /app/docs/swagger.json ./docs/doc.json
-COPY --from=builder /app/docs/swagger.yaml ./docs/doc.yaml
+COPY --from=builder /app/docs/swagger.json ./docs/swagger.json
+COPY --from=builder /app/docs/swagger.yaml ./docs/swagger.yaml
 
 # Копируем директорию с данными уроков
 COPY --from=builder /app/data ./data

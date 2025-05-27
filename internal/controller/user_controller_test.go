@@ -59,7 +59,9 @@ func TestRegister_Success(t *testing.T) {
 
 	if assert.NoError(t, h.Register(c)) {
 		assert.Equal(t, http.StatusCreated, rec.Code)
-		assert.Contains(t, rec.Body.String(), "registered")
+		// Проверяем обновлённый формат ответа
+		assert.Contains(t, rec.Body.String(), "success")
+		assert.Contains(t, rec.Body.String(), "Пользователь успешно зарегистрирован")
 	}
 }
 
@@ -163,13 +165,23 @@ func TestProfile_Success(t *testing.T) {
 	logger := zap.NewNop()
 	h := NewUserController(ms, logger)
 
+	// Создаем правильный HTTP запрос и рекордер
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/user", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	// Настраиваем JWT токен с правильными claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"username": "user"})
-	c := e.NewContext(nil, httptest.NewRecorder())
 	c.Set("user", token)
 
+	// Вызываем тестируемый метод
 	err := h.Profile(c)
+
+	// Проверяем результаты
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, c.Response().Status)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Contains(t, rec.Body.String(), "user")    // Имя пользователя должно быть в ответе
+	assert.Contains(t, rec.Body.String(), "success") // Новый формат ответа
 }
 
 func TestProfile_Error(t *testing.T) {
@@ -179,13 +191,22 @@ func TestProfile_Error(t *testing.T) {
 	logger := zap.NewNop()
 	h := NewUserController(ms, logger)
 
+	// Создаем правильный HTTP запрос и рекордер
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/user", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	// Настраиваем JWT токен с правильными claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"username": "user"})
-	c := e.NewContext(nil, httptest.NewRecorder())
 	c.Set("user", token)
 
+	// Вызываем тестируемый метод
 	err := h.Profile(c)
+
+	// Проверяем результаты
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	assert.Contains(t, rec.Body.String(), "error") // Проверяем, что ответ содержит информацию об ошибке
 }
 
 func TestUploadImage_Success(t *testing.T) {

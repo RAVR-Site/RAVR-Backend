@@ -60,6 +60,107 @@ info:
   title: RAVR Backend API
   version: "1.0"
 paths:
+  /lessons:
+    get:
+      consumes:
+        - application/json
+      description: Возвращает список всех уроков
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.Response'
+      summary: Получение всех уроков
+      tags:
+        - lessons
+  /lessons/{id}:
+    get:
+      consumes:
+        - application/json
+      description: Возвращает детальную информацию об уроке по его ID, включая полные
+        данные урока
+      parameters:
+        - description: ID урока
+          in: path
+          name: id
+          required: true
+          type: integer
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.Response'
+      summary: Получение детальной информации урока
+      tags:
+        - lessons
+  /lessons/type/{type}:
+    get:
+      consumes:
+        - application/json
+      description: Возвращает список всех уроков указанного типа
+      parameters:
+        - description: Тип урока
+          in: path
+          name: type
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.Response'
+      summary: Получение уроков по типу
+      tags:
+        - lessons
+  /lessons/types:
+    get:
+      consumes:
+        - application/json
+      description: Возвращает список всех уникальных типов уроков
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.Response'
+      summary: Получение типов уроков
+      tags:
+        - lessons
   /user:
     get:
       consumes:

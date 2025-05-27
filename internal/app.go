@@ -194,8 +194,7 @@ func (app *Application) Start() error {
 			// Файл существует, загружаем уроки
 			logger.Info("Начинаем загрузку уроков из файла", zap.String("path", lessonsFilePath))
 			if err := lessonService.LoadLessonsFromFile(lessonsFilePath); err != nil {
-				logger.Error("Ошибка загрузки уроков из файла", zap.Error(err))
-				// Продолжаем выполнение, даже если произошла ошибка при загрузке уроков
+				logger.Fatal("Ошибка загрузки уроков из файла", zap.Error(err))
 			}
 		} else {
 			logger.Warn("Файл с уроками не найден", zap.String("path", lessonsFilePath))
