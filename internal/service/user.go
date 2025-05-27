@@ -2,10 +2,9 @@ package service
 
 import (
 	"errors"
+	"github.com/Ravr-Site/Ravr-Backend/internal/auth"
 	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
-	"time"
 
-	"github.com/golang-jwt/jwt/v4"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -17,13 +16,14 @@ type UserService interface {
 }
 
 type service struct {
-	repo      repository.UserRepository
-	jwtSecret string
-	logger    *zap.Logger
+	repo       repository.UserRepository
+	jwtManager *auth.JWTManager
+	logger     *zap.Logger
 }
 
-func NewUserService(repo repository.UserRepository, jwtSecret string, logger *zap.Logger) UserService {
-	return &service{repo, jwtSecret, logger}
+func NewUserService(repo repository.UserRepository, jwtSecret string, jwtAccessExpiration int, logger *zap.Logger) UserService {
+	jwtManager := auth.NewJWTManager(jwtSecret, jwtAccessExpiration)
+	return &service{repo, jwtManager, logger}
 }
 
 func (s *service) Register(username, password string) error {
@@ -44,17 +44,24 @@ func (s *service) Login(username, password string) (string, error) {
 	if err != nil || user == nil {
 		return "", errors.New("invalid credentials")
 	}
+	
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return "", errors.New("invalid credentials")
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username": user.Username,
-		"exp":      time.Now().Add(time.Hour * 72).Unix(),
-	})
-	signed, err := token.SignedString([]byte(s.jwtSecret))
-	s.logger.Info("user logged in", zap.String("username", user.Username))
-	return signed, err
+	
+	// Генерируем токен с помощью JWT менеджера
+	token, err := s.jwtManager.GenerateToken(user.ID, user.Username)
+	if err != nil {
+		s.logger.Error("failed to generate JWT token", zap.Error(err))
+		return "", errors.New("failed to generate token")
+	}
+	
+	s.logger.Info("user logged in", 
+		zap.String("username", user.Username),
+		zap.Uint("user_id", user.ID))
+	
+	return token, nil
 }
 
 func (s *service) GetByUsername(username string) (*repository.User, error) {

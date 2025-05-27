@@ -31,7 +31,7 @@ func TestUserService_Register_Success(t *testing.T) {
 	repo.On("FindByUsername", "user").Return(nil, nil)
 	repo.On("Create", mock.AnythingOfType("*repository.User")).Return(nil)
 	logger := zap.NewNop()
-	svc := NewUserService(repo, "secret", logger)
+	svc := NewUserService(repo, "secret", 24, logger)
 
 	err := svc.Register("user", "pass")
 	assert.NoError(t, err)
@@ -42,7 +42,7 @@ func TestUserService_Register_UsernameTaken(t *testing.T) {
 	repo := new(mockUserRepo)
 	repo.On("FindByUsername", "user").Return(&repository.User{Username: "user"}, nil)
 	logger := zap.NewNop()
-	svc := NewUserService(repo, "secret", logger)
+	svc := NewUserService(repo, "secret", 24, logger)
 
 	err := svc.Register("user", "pass")
 	assert.Error(t, err)
@@ -55,7 +55,7 @@ func TestUserService_Login_Success(t *testing.T) {
 	_ = svcPasswordHash(user, "pass")
 	repo.On("FindByUsername", "user").Return(user, nil)
 	logger := zap.NewNop()
-	svc := NewUserService(repo, "secret", logger)
+	svc := NewUserService(repo, "secret", 24, logger)
 
 	token, err := svc.Login("user", "pass")
 	assert.NoError(t, err)
@@ -70,7 +70,7 @@ func TestUserService_Login_InvalidPassword(t *testing.T) {
 	_ = svcPasswordHash(user, "pass")
 	repo.On("FindByUsername", "user").Return(user, nil)
 	logger := zap.NewNop()
-	svc := NewUserService(repo, "secret", logger)
+	svc := NewUserService(repo, "secret", 24, logger)
 
 	_, err := svc.Login("user", "wrong")
 	assert.Error(t, err)
@@ -81,7 +81,7 @@ func TestUserService_Login_UserNotFound(t *testing.T) {
 	repo := new(mockUserRepo)
 	repo.On("FindByUsername", "nouser").Return(nil, nil)
 	logger := zap.NewNop()
-	svc := NewUserService(repo, "secret", logger)
+	svc := NewUserService(repo, "secret", 24, logger)
 
 	_, err := svc.Login("nouser", "pass")
 	assert.Error(t, err)
@@ -92,7 +92,7 @@ func TestUserService_GetByUsername(t *testing.T) {
 	repo := new(mockUserRepo)
 	repo.On("FindByUsername", "user").Return(&repository.User{Username: "user"}, nil)
 	logger := zap.NewNop()
-	svc := NewUserService(repo, "secret", logger)
+	svc := NewUserService(repo, "secret", 24, logger)
 
 	u, err := svc.GetByUsername("user")
 	assert.NoError(t, err)

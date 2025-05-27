@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
@@ -100,13 +99,17 @@ func (h *UserController) Login(c echo.Context) error {
 // @Failure 500 {object} responses.Response
 // @Router /user [get]
 func (h *UserController) Profile(c echo.Context) error {
-	userToken := c.Get("user").(*jwt.Token)
-	claims := userToken.Claims.(jwt.MapClaims)
-	username := claims["username"].(string)
+	// Получаем username из контекста (установлено JWT middleware)
+	username := c.Get("username").(string)
+	
 	u, err := h.svc.GetByUsername(username)
 	if err != nil {
+		h.logger.Error("failed to get user profile", 
+			zap.String("username", username), 
+			zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, responses.ErrorResponse("SERVER_ERROR", err.Error()))
 	}
+	
 	return c.JSON(http.StatusOK, responses.DataResponse(responses.UserResponse{
 		ID:       u.ID,
 		Username: u.Username,
