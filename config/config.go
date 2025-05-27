@@ -28,10 +28,12 @@ func Load() (*Config, error) {
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("../config")
 
+	viper.AutomaticEnv()
+
 	var cfg Config
 
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to read config file: %w", err)
+		fmt.Printf("Warning: failed to read config file %s: %v\n", envFile, err)
 	}
 
 	if err := viper.Unmarshal(&cfg); err != nil {

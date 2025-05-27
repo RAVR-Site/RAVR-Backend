@@ -112,15 +112,27 @@ func (app *Application) Init() error {
 }
 
 func (app *Application) initRepositories() error {
-	err := app.container.Provide(repository.NewUserRepository)
-	return err
+	if err := app.container.Provide(repository.NewUserRepository); err != nil {
+		return err
+	}
+
+	if err := app.container.Provide(repository.NewLessonRepository); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (app *Application) initServices() error {
-	err := app.container.Provide(func(repo repository.UserRepository, logger *zap.Logger) service.UserService {
+	if err := app.container.Provide(func(repo repository.UserRepository, logger *zap.Logger) service.UserService {
 		return service.NewUserService(repo, app.config.JWTSecret, logger)
-	})
-	if err != nil {
+	}); err != nil {
+		return err
+	}
+
+	if err := app.container.Provide(func(repo repository.LessonRepository, logger *zap.Logger) service.LessonService {
+		return service.NewLessonService(repo, logger)
+	}); err != nil {
 		return err
 	}
 
@@ -128,19 +140,32 @@ func (app *Application) initServices() error {
 }
 
 func (app *Application) initControllers() error {
-	if err := app.container.Invoke(func(e *echo.Echo, userService service.UserService, logger *zap.Logger) {
-		// Маршруты, доступные без JWT аутентификации
+	if err := app.container.Invoke(func(
+		e *echo.Echo,
+		userService service.UserService,
+		lessonService service.LessonService,
+		logger *zap.Logger,
+	) {
+		// Swagger routes
 		e.GET("/swagger/*", echoSwagger.WrapHandler)
-		e.GET("swagger/doc.json", func(c echo.Context) error {
-			return c.File("docs/doc.json")
+		e.GET("/swagger/doc.json", func(c echo.Context) error {
+			return c.File("./docs/swagger.json")
 		})
-		e.GET("swagger/doc.yaml", func(c echo.Context) error {
-			return c.File("docs/doc.yaml")
+		e.GET("/swagger/doc.yaml", func(c echo.Context) error {
+			return c.File("./docs/swagger.yaml")
 		})
 
+		// Пользовательские маршруты, доступные без JWT аутентификации
 		userHandler := controller.NewUserController(userService, logger)
 		e.POST("/api/v1/user/login", userHandler.Login)
 		e.POST("/api/v1/user/register", userHandler.Register)
+
+		// Маршруты уроков, доступные без JWT аутентификации
+		lessonHandler := controller.NewLessonController(lessonService, logger)
+		e.GET("/api/v1/lessons/types", lessonHandler.GetLessonTypes)
+		e.GET("/api/v1/lessons/type/:type", lessonHandler.GetLessonsByType)
+		e.GET("/api/v1/lessons/:id", lessonHandler.GetLesson)
+		e.GET("/api/v1/lessons", lessonHandler.GetAllLessons)
 
 		// JWT middleware для защищенных маршрутов
 		jwtConfig := echojwt.Config{
@@ -151,10 +176,8 @@ func (app *Application) initControllers() error {
 		api := e.Group("/api/v1")
 		api.Use(echojwt.WithConfig(jwtConfig))
 
-		// Защищенные маршруты
+		// Защищенные маршруты пользователя
 		api.GET("/user", userHandler.Profile)
-
-		// Тут можно добавлять другие защищенные маршруты
 	}); err != nil {
 		return err
 	}
@@ -163,7 +186,21 @@ func (app *Application) initControllers() error {
 }
 
 func (app *Application) Start() error {
-	return app.container.Invoke(func(e *echo.Echo) error {
+	// Загружаем уроки из JSON файла при старте приложения
+	return app.container.Invoke(func(e *echo.Echo, lessonService service.LessonService, logger *zap.Logger) error {
+		// Проверяем существование файла с уроками
+		lessonsFilePath := "data/lessons.json"
+		if _, err := os.Stat(lessonsFilePath); err == nil {
+			// Файл существует, загружаем уроки
+			logger.Info("Начинаем загрузку уроков из файла", zap.String("path", lessonsFilePath))
+			if err := lessonService.LoadLessonsFromFile(lessonsFilePath); err != nil {
+				logger.Error("Ошибка загрузки уроков из файла", zap.Error(err))
+				// Продолжаем выполнение, даже если произошла ошибка при загрузке уроков
+			}
+		} else {
+			logger.Warn("Файл с уроками не найден", zap.String("path", lessonsFilePath))
+		}
+
 		return e.Start(":" + app.config.Port)
 	})
 }
