@@ -1,8 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"github.com/spf13/viper"
+	"log"
 	"os"
 )
 
@@ -33,11 +33,11 @@ func Load() (*Config, error) {
 	var cfg Config
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("Warning: failed to read config file %s: %v\n", envFile, err)
+		log.Fatalf("Warning: failed to read config file %s: %v\n", envFile, err)
 	}
 
 	if err := viper.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+		log.Fatalf("Warning: failed to Unmarshal config file %s: %v\n", envFile, err)
 	}
 
 	return &cfg, nil
