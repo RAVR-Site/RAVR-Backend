@@ -1,8 +1,6 @@
 APP_NAME=ravr-backend
 BINARY=ravr-backend
 
-.PHONY: build run test lint docker-build docker-up docker-down migrate clean
-
 build:
 	go build -o $(BINARY) ./cmd/main.go
 
@@ -18,14 +16,35 @@ lint:
 docker-build:
 	docker build -t $(APP_NAME):latest .
 
-docker-up:
-	docker-compose up -d
+up:
+	docker compose up -d --build
 
-docker-down:
-	docker-compose down
+up-infra:
+	docker compose up -d --no-build --force-recreate db migrator
 
+down:
+	docker compose down
+
+# Миграции
 migrate:
-	migrate -path migrations -database "$$DATABASE_DSN" up
+	migrate -path migrations -database "${DATABASE_DSN}" up
+
+migrate-down:
+	migrate -path migrations -database "${DATABASE_DSN}" down
+
+migrate-drop:
+	migrate -path migrations -database "${DATABASE_DSN}" drop
+
+migrate-create:
+	@read -p "Enter migration name: " name; \
+	migrate create -ext sql -dir migrations -seq $${name}
+
+migrate-reset:
+	migrate -path migrations -database "${DATABASE_DSN}" drop
+	migrate -path migrations -database "${DATABASE_DSN}" up
+
+migrate-version:
+	migrate -path migrations -database "${DATABASE_DSN}" version
 
 clean:
 	rm -f $(BINARY)

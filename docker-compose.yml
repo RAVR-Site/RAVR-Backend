@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   db:
-    image: postgres:15
+    image: postgres:16-alpine
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -14,6 +12,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  migrator:
+    image: migrate/migrate:v4.17.1
+    command: sh -c "sleep 2 && migrate -path migrations -database \"postgres://postgres:postgres@db:5432/ravr-backend?sslmode=disable\" up"
+    volumes:
+      - ./migrations:/migrations
+    depends_on:
+      db:
+        condition: service_healthy
+
   app:
     build: .
     ports:
@@ -22,4 +33,9 @@ services:
       DATABASE_DSN: host=db user=postgres password=postgres dbname=ravr-backend port=5432 sslmode=disable
       JWT_SECRET: secret
     depends_on:
-      - db
+      migrations:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
+
