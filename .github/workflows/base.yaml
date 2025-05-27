@@ -29,7 +29,6 @@ jobs:
       - name: Setup Go
         uses: golangci/golangci-lint-action@v8
         with:
-          version: ${{ env.GO_VERSION }}
           args: --timeout=5m
 
 
