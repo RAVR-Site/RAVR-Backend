@@ -1,10 +1,8 @@
 name: Go CI/CD Pipeline
 
 on:
-  push:
-    - '**'
-  pull_request:
-    - '**'
+  push: { }
+  pull_request: { }
 
 env:
   DOCKER_IMAGE_REPOSITORY: fastrapier1/ravr-backend
