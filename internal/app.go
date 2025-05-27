@@ -3,7 +3,6 @@ package internal
 import (
 	"github.com/Ravr-Site/Ravr-Backend/config"
 	"github.com/Ravr-Site/Ravr-Backend/internal/controller"
-	"github.com/Ravr-Site/Ravr-Backend/internal/database"
 	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
 	"github.com/Ravr-Site/Ravr-Backend/internal/service"
 	"github.com/labstack/echo-jwt/v4"
@@ -15,7 +14,6 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"
-	"path/filepath"
 )
 
 type Application struct {
@@ -62,12 +60,6 @@ func (app *Application) Init() error {
 			return nil, err
 		}
 
-		// Запускаем миграции с помощью golang-migrate
-		if err := app.runMigrations(db, logger); err != nil {
-			logger.Error("Failed to run migrations", zap.Error(err))
-			return nil, err
-		}
-
 		return db, nil
 	}); err != nil {
 		return err
@@ -107,51 +99,6 @@ func (app *Application) Init() error {
 		return err
 	}
 
-	return nil
-}
-
-// runMigrations выполняет миграции базы данных с помощью golang-migrate
-func (app *Application) runMigrations(db *gorm.DB, logger *zap.Logger) error {
-	logger.Info("Running database migrations")
-
-	// Определяем путь к директории с миграциями
-	// Сначала пытаемся найти относительно текущего рабочего каталога
-	migrationsPath := "migrations"
-
-	if _, err := os.Stat(migrationsPath); os.IsNotExist(err) {
-		// Если директория не найдена, используем абсолютный путь от корня проекта
-		workDir, err := os.Getwd()
-		if err != nil {
-			logger.Error("Failed to get working directory", zap.Error(err))
-			return err
-		}
-
-		// Пробуем найти директорию миграций относительно корня проекта
-		migrationsPath = filepath.Join(workDir, "migrations")
-		if _, err := os.Stat(migrationsPath); os.IsNotExist(err) {
-			logger.Error("Migrations directory not found", zap.String("path", migrationsPath))
-			return err
-		}
-	}
-
-	logger.Info("Using migrations path", zap.String("path", migrationsPath))
-
-	// Проверяем переменную окружения для принудительного сброса миграций
-	if os.Getenv("RESET_MIGRATIONS") == "true" {
-		logger.Warn("Reset migrations flag is set, reverting all migrations")
-		if err := database.ResetMigrations(db, migrationsPath); err != nil {
-			logger.Error("Failed to reset migrations", zap.Error(err))
-			return err
-		}
-	}
-
-	// Запускаем миграции
-	if err := database.RunMigrations(db, migrationsPath); err != nil {
-		logger.Error("Failed to run migrations", zap.Error(err))
-		return err
-	}
-
-	logger.Info("Database migrations completed successfully")
 	return nil
 }
 
