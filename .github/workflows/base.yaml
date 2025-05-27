@@ -1,9 +1,9 @@
-name: Java CI with Maven
-
-on:
-  push:
-
-env:
-  DOCKER_IMAGE_REPOSITORY: fastrapier1/ravr-backend
-
-jobs:
+#name: Java CI with Maven
+#
+#on:
+#  push:
+#
+#env:
+#  DOCKER_IMAGE_REPOSITORY: fastrapier1/ravr-backend
+#
+#jobs:
