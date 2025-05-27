@@ -17,7 +17,7 @@ func main() {
 
 	// Кодируем в base64 для удобства использования
 	secret := base64.URLEncoding.EncodeToString(bytes)
-	
+
 	fmt.Println("Generated JWT Secret:")
 	fmt.Println(secret)
 	fmt.Println("\nAdd this to your .env file:")

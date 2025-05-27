@@ -44,23 +44,23 @@ func (s *service) Login(username, password string) (string, error) {
 	if err != nil || user == nil {
 		return "", errors.New("invalid credentials")
 	}
-	
+
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return "", errors.New("invalid credentials")
 	}
-	
+
 	// Генерируем токен с помощью JWT менеджера
 	token, err := s.jwtManager.GenerateToken(user.ID, user.Username)
 	if err != nil {
 		s.logger.Error("failed to generate JWT token", zap.Error(err))
 		return "", errors.New("failed to generate token")
 	}
-	
-	s.logger.Info("user logged in", 
+
+	s.logger.Info("user logged in",
 		zap.String("username", user.Username),
 		zap.Uint("user_id", user.ID))
-	
+
 	return token, nil
 }
 

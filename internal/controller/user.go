@@ -101,15 +101,15 @@ func (h *UserController) Login(c echo.Context) error {
 func (h *UserController) Profile(c echo.Context) error {
 	// Получаем username из контекста (установлено JWT middleware)
 	username := c.Get("username").(string)
-	
+
 	u, err := h.svc.GetByUsername(username)
 	if err != nil {
-		h.logger.Error("failed to get user profile", 
-			zap.String("username", username), 
+		h.logger.Error("failed to get user profile",
+			zap.String("username", username),
 			zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, responses.ErrorResponse("SERVER_ERROR", err.Error()))
 	}
-	
+
 	return c.JSON(http.StatusOK, responses.DataResponse(responses.UserResponse{
 		ID:       u.ID,
 		Username: u.Username,
@@ -135,7 +135,7 @@ func (h *UserController) UploadImage(store storage.Storage) echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, responses.ErrorResponse("FILE_CREATION_ERROR", err.Error()))
 		}
 		defer dst.Close()
-		
+
 		if _, err := io.Copy(dst, src); err != nil {
 			return c.JSON(http.StatusInternalServerError, responses.ErrorResponse("FILE_COPY_ERROR", err.Error()))
 		}

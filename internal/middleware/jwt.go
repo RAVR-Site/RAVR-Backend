@@ -12,11 +12,11 @@ import (
 // JWTMiddleware создает middleware для проверки JWT токенов
 func JWTMiddleware(jwtSecret string, jwtAccessExpiration int, logger *zap.Logger) echo.MiddlewareFunc {
 	jwtManager := auth.NewJWTManager(jwtSecret, jwtAccessExpiration)
-	
+
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
-			
+
 			if authHeader == "" {
 				logger.Debug("missing authorization header")
 				return echo.NewHTTPError(http.StatusUnauthorized, "missing authorization header")
@@ -45,7 +45,7 @@ func JWTMiddleware(jwtSecret string, jwtAccessExpiration int, logger *zap.Logger
 			c.Set("user_id", claims.UserID)
 			c.Set("username", claims.Username)
 
-			logger.Debug("token validated successfully", 
+			logger.Debug("token validated successfully",
 				zap.String("username", claims.Username),
 				zap.Uint("user_id", claims.UserID))
 

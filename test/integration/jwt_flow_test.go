@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	"github.com/Ravr-Site/Ravr-Backend/config"
-	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
-	"github.com/Ravr-Site/Ravr-Backend/internal/service"
 	"github.com/Ravr-Site/Ravr-Backend/internal/controller"
 	"github.com/Ravr-Site/Ravr-Backend/internal/middleware"
+	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
+	"github.com/Ravr-Site/Ravr-Backend/internal/service"
 	"github.com/labstack/echo/v4"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/stretchr/testify/assert"
@@ -46,7 +46,7 @@ func setupTestApp() (*echo.Echo, error) {
 
 	// Создаем репозитории
 	userRepo := repository.NewUserRepository(db)
-	
+
 	// Создаем сервисы
 	userService := service.NewUserService(userRepo, cfg.JWTSecret, cfg.JWTAccessExpiration, logger)
 
@@ -60,11 +60,11 @@ func setupTestApp() (*echo.Echo, error) {
 
 	// Настраиваем роуты
 	api := e.Group("/api/v1")
-	
+
 	// Публичные роуты
 	api.POST("/register", userController.Register)
 	api.POST("/login", userController.Login)
-	
+
 	// Защищенные роуты
 	protected := api.Group("")
 	protected.Use(middleware.JWTMiddleware(cfg.JWTSecret, cfg.JWTAccessExpiration, logger))
@@ -92,11 +92,11 @@ func TestJWTAuthFlow(t *testing.T) {
 		e.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusCreated, rec.Code)
-		
+
 		var registerResponse map[string]interface{}
 		err := json.Unmarshal(rec.Body.Bytes(), &registerResponse)
 		require.NoError(t, err)
-		
+
 		// Проверяем формат ответа (может быть success: true вместо status: "success")
 		if success, ok := registerResponse["success"].(bool); ok {
 			assert.True(t, success)
@@ -122,7 +122,7 @@ func TestJWTAuthFlow(t *testing.T) {
 		var loginResponse map[string]interface{}
 		err = json.Unmarshal(rec.Body.Bytes(), &loginResponse)
 		require.NoError(t, err)
-		
+
 		// Проверяем формат ответа
 		if success, ok := loginResponse["success"].(bool); ok {
 			assert.True(t, success)
@@ -151,7 +151,7 @@ func TestJWTAuthFlow(t *testing.T) {
 		var profileResponse map[string]interface{}
 		err = json.Unmarshal(rec.Body.Bytes(), &profileResponse)
 		require.NoError(t, err)
-		
+
 		// Проверяем формат ответа
 		if success, ok := profileResponse["success"].(bool); ok {
 			assert.True(t, success)
