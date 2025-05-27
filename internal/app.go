@@ -197,7 +197,7 @@ func (app *Application) Start() error {
 				logger.Fatal("Ошибка загрузки уроков из файла", zap.Error(err))
 			}
 		} else {
-			logger.Warn("Файл с уроками не найден", zap.String("path", lessonsFilePath))
+			logger.Fatal("Файл с уроками не найден", zap.String("path", lessonsFilePath))
 		}
 
 		return e.Start(":" + app.config.Port)
