@@ -1,4 +1,149 @@
+basePath: /api/v1
+definitions:
+  controller.loginRequest:
+    description: Запрос на вход в систему
+    properties:
+      password:
+        example: secret123
+        type: string
+      username:
+        example: johndoe
+        type: string
+    required:
+      - password
+      - username
+    type: object
+  controller.registerRequest:
+    description: Запрос на регистрацию нового пользователя
+    properties:
+      password:
+        example: secret123
+        minLength: 6
+        type: string
+      username:
+        example: johndoe
+        minLength: 3
+        type: string
+    required:
+      - password
+      - username
+    type: object
+  responses.ErrorInfo:
+    properties:
+      code:
+        example: INVALID_CREDENTIALS
+        type: string
+      message:
+        example: Неверный логин или пароль
+        type: string
+    type: object
+  responses.Response:
+    properties:
+      data: { }
+      error:
+        $ref: '#/definitions/responses.ErrorInfo'
+      success:
+        example: true
+        type: boolean
+    type: object
+host: localhost:8080
 info:
-  contact: { }
-paths: { }
+  contact:
+    email: support@ravr-site.io
+    name: API Support
+    url: http://www.ravr-site.io/support
+  description: API для проекта RAVR
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: RAVR Backend API
+  version: "1.0"
+paths:
+  /user:
+    get:
+      consumes:
+        - application/json
+      description: Возвращает данные текущего аутентифицированного пользователя
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.Response'
+      security:
+        - ApiKeyAuth: [ ]
+      summary: Профиль пользователя
+      tags:
+        - user
+  /user/login:
+    post:
+      consumes:
+        - application/json
+      description: Аутентифицирует пользователя и возвращает JWT токен
+      parameters:
+        - description: Учетные данные
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/controller.loginRequest'
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.Response'
+      summary: Вход в систему
+      tags:
+        - auth
+  /user/register:
+    post:
+      consumes:
+        - application/json
+      description: Создает нового пользователя с указанными учетными данными
+      parameters:
+        - description: Данные для регистрации
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/controller.registerRequest'
+      produces:
+        - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responses.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.Response'
+      summary: Регистрация нового пользователя
+      tags:
+        - auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

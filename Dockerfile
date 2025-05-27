@@ -30,8 +30,8 @@ WORKDIR /app
 
 # Копируем бинарник, документацию и конфигурационный файл
 COPY --from=builder /app/app .
-COPY --from=builder /app/docs/swagger.json ./docs/swagger.json
-COPY --from=builder /app/docs/swagger.yaml ./docs/swagger.yaml
+COPY --from=builder /app/docs/swagger.json ./docs/doc.json
+COPY --from=builder /app/docs/swagger.yaml ./docs/doc.yaml
 
 # Копируем все конфигурационные файлы
 COPY config/.env.* /app/config/

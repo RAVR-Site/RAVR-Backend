@@ -5,7 +5,7 @@ import (
 	"github.com/Ravr-Site/Ravr-Backend/internal/controller"
 	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
 	"github.com/Ravr-Site/Ravr-Backend/internal/service"
-	"github.com/labstack/echo-jwt/v4"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"net/http"
 	"os"
 )
 
@@ -70,17 +71,25 @@ func (app *Application) Init() error {
 
 		e.Use(middleware.Logger())
 		e.Use(middleware.Recover())
-		e.Use(echojwt.WithConfig(echojwt.Config{
-			SigningKey: []byte(app.config.JWTSecret),
-			Skipper: func(c echo.Context) bool {
-				// Skip JWT authentication for certain routes
-				switch c.Path() {
-				case "/api/v1/user/login", "/api/v1/user/register":
-					return true
-				}
-				return false
-			},
-		}))
+
+		// Устанавливаем обработчик 404 ошибок
+		e.HTTPErrorHandler = func(err error, c echo.Context) {
+			code := http.StatusInternalServerError
+			if he, ok := err.(*echo.HTTPError); ok {
+				code = he.Code
+			}
+
+			// Если маршрут не найден, возвращаем 404
+			if code == http.StatusNotFound {
+				_ = c.JSON(http.StatusNotFound, map[string]string{
+					"message": "Endpoint not found",
+				})
+				return
+			}
+
+			// Для остальных ошибок используем стандартный обработчик
+			e.DefaultHTTPErrorHandler(err, c)
+		}
 
 		return e
 	}); err != nil {
@@ -120,12 +129,32 @@ func (app *Application) initServices() error {
 
 func (app *Application) initControllers() error {
 	if err := app.container.Invoke(func(e *echo.Echo, userService service.UserService, logger *zap.Logger) {
+		// Маршруты, доступные без JWT аутентификации
 		e.GET("/swagger/*", echoSwagger.WrapHandler)
+		e.GET("swagger/doc.json", func(c echo.Context) error {
+			return c.File("docs/doc.json")
+		})
+		e.GET("swagger/doc.yaml", func(c echo.Context) error {
+			return c.File("docs/doc.yaml")
+		})
 
 		userHandler := controller.NewUserController(userService, logger)
-		e.GET("/api/v1/user", userHandler.Profile)
 		e.POST("/api/v1/user/login", userHandler.Login)
 		e.POST("/api/v1/user/register", userHandler.Register)
+
+		// JWT middleware для защищенных маршрутов
+		jwtConfig := echojwt.Config{
+			SigningKey: []byte(app.config.JWTSecret),
+		}
+
+		// Создаем группу для защищенных маршрутов
+		api := e.Group("/api/v1")
+		api.Use(echojwt.WithConfig(jwtConfig))
+
+		// Защищенные маршруты
+		api.GET("/user", userHandler.Profile)
+
+		// Тут можно добавлять другие защищенные маршруты
 	}); err != nil {
 		return err
 	}
