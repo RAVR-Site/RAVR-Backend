@@ -3,11 +3,11 @@ package internal
 import (
 	"github.com/Ravr-Site/Ravr-Backend/config"
 	"github.com/Ravr-Site/Ravr-Backend/internal/controller"
+	"github.com/Ravr-Site/Ravr-Backend/internal/middleware"
 	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
 	"github.com/Ravr-Site/Ravr-Backend/internal/service"
-	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	echomiddleware "github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
@@ -55,7 +55,7 @@ func (app *Application) Init() error {
 		return err
 	}
 
-	if err := app.container.Provide(func(logger *zap.Logger) (*gorm.DB, error) {
+	if err := app.container.Provide(func(_ *zap.Logger) (*gorm.DB, error) {
 		db, err := gorm.Open(postgres.Open(app.config.DatabaseDSN), &gorm.Config{})
 		if err != nil {
 			return nil, err
@@ -69,8 +69,8 @@ func (app *Application) Init() error {
 	if err := app.container.Provide(func() *echo.Echo {
 		e := echo.New()
 
-		e.Use(middleware.Logger())
-		e.Use(middleware.Recover())
+		e.Use(echomiddleware.Logger())
+		e.Use(echomiddleware.Recover())
 
 		// Устанавливаем обработчик 404 ошибок
 		e.HTTPErrorHandler = func(err error, c echo.Context) {
@@ -125,7 +125,7 @@ func (app *Application) initRepositories() error {
 
 func (app *Application) initServices() error {
 	if err := app.container.Provide(func(repo repository.UserRepository, logger *zap.Logger) service.UserService {
-		return service.NewUserService(repo, app.config.JWTSecret, logger)
+		return service.NewUserService(repo, app.config.JWTSecret, app.config.JWTAccessExpiration, logger)
 	}); err != nil {
 		return err
 	}
@@ -167,14 +167,9 @@ func (app *Application) initControllers() error {
 		e.GET("/api/v1/lessons/:id", lessonHandler.GetLesson)
 		e.GET("/api/v1/lessons", lessonHandler.GetAllLessons)
 
-		// JWT middleware для защищенных маршрутов
-		jwtConfig := echojwt.Config{
-			SigningKey: []byte(app.config.JWTSecret),
-		}
-
 		// Создаем группу для защищенных маршрутов
 		api := e.Group("/api/v1")
-		api.Use(echojwt.WithConfig(jwtConfig))
+		api.Use(middleware.JWTMiddleware(app.config.JWTSecret, app.config.JWTAccessExpiration, logger))
 
 		// Защищенные маршруты пользователя
 		api.GET("/user", userHandler.Profile)
@@ -202,4 +197,9 @@ func (app *Application) Start() error {
 
 		return e.Start(":" + app.config.Port)
 	})
+}
+
+// GetContainer возвращает DI контейнер для тестирования
+func (app *Application) GetContainer() *dig.Container {
+	return app.container
 }

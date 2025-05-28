@@ -10,6 +10,15 @@ run:
 test:
 	go test ./...
 
+test-jwt:
+	go test ./internal/auth/... ./internal/service/... -v
+
+test-integration:
+	go test ./test/integration/... -v
+
+generate-jwt-secret:
+	go run tools/generate-jwt-secret/main.go
+
 lint:
 	golangci-lint run
 

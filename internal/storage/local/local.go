@@ -6,17 +6,22 @@ import (
 	"path/filepath"
 )
 
-type LocalStorage struct {
+// Storage represents a local file storage implementation
+type Storage struct {
 	basePath string
 }
 
-func NewLocalStorage(basePath string) *LocalStorage {
-	os.MkdirAll(basePath, os.ModePerm)
-	return &LocalStorage{basePath}
+// NewLocalStorage creates a new local storage instance
+func NewLocalStorage(basePath string) (*Storage, error) {
+	if err := os.MkdirAll(basePath, os.ModePerm); err != nil {
+		return nil, fmt.Errorf("failed to create directory %s: %w", basePath, err)
+	}
+	return &Storage{basePath}, nil
 }
 
-func (l *LocalStorage) Save(path, filename string) error {
-	dst := filepath.Join(l.basePath, filename)
+// Save saves a file to the local storage
+func (s *Storage) Save(_, filename string) error {
+	dst := filepath.Join(s.basePath, filename)
 	// file is already saved to uploads; additional logic can go here
 	fmt.Printf("Saved file to %s", dst)
 	return nil

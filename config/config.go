@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	DatabaseDSN string `mapstructure:"DATABASE_DSN"`
-	JWTSecret   string `mapstructure:"JWT_SECRET"`
-	Port        string `mapstructure:"PORT"`
+	DatabaseDSN         string `mapstructure:"DATABASE_DSN"`
+	JWTSecret           string `mapstructure:"JWT_SECRET"`
+	JWTAccessExpiration int    `mapstructure:"JWT_ACCESS_EXPIRATION"` // в часах
+	Port                string `mapstructure:"PORT"`
 }
 
 func Load() (*Config, error) {
@@ -28,6 +29,9 @@ func Load() (*Config, error) {
 	viper.AddConfigPath("config")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("../config")
+
+	// Устанавливаем значения по умолчанию
+	viper.SetDefault("JWT_ACCESS_EXPIRATION", 24) // 24 часа по умолчанию
 
 	viper.AutomaticEnv()
 
