@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/spf13/viper"
 	"log"
 	"os"
@@ -35,6 +36,15 @@ func Load() (*Config, error) {
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Warning: failed to read config file %s: %v\n", envFile, err)
 	}
+
+	dbHost := viper.GetString("DB_HOST")
+	if dbHost == "" {
+		dbHost = "localhost"
+	}
+
+	dsnFormat := viper.GetString("DATABASE_DSN")
+	formattedDSN := fmt.Sprintf(dsnFormat, dbHost)
+	viper.Set("DATABASE_DSN", formattedDSN)
 
 	if err := viper.Unmarshal(&cfg); err != nil {
 		log.Fatalf("Warning: failed to Unmarshal config file %s: %v\n", envFile, err)
