@@ -3,13 +3,15 @@ package config
 import (
 	"fmt"
 	"github.com/spf13/viper"
+	"log"
 	"os"
 )
 
 type Config struct {
-	DatabaseDSN string `mapstructure:"DATABASE_DSN"`
-	JWTSecret   string `mapstructure:"JWT_SECRET"`
-	Port        string `mapstructure:"PORT"`
+	DatabaseDSN         string `mapstructure:"DATABASE_DSN"`
+	JWTSecret           string `mapstructure:"JWT_SECRET"`
+	JWTAccessExpiration int    `mapstructure:"JWT_ACCESS_EXPIRATION"` // в часах
+	Port                string `mapstructure:"PORT"`
 }
 
 func Load() (*Config, error) {
@@ -28,14 +30,28 @@ func Load() (*Config, error) {
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("../config")
 
+	// Устанавливаем значения по умолчанию
+	viper.SetDefault("JWT_ACCESS_EXPIRATION", 24) // 24 часа по умолчанию
+
+	viper.AutomaticEnv()
+
 	var cfg Config
 
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to read config file: %w", err)
+		log.Fatalf("Warning: failed to read config file %s: %v\n", envFile, err)
 	}
 
+	dbHost := viper.GetString("DB_HOST")
+	if dbHost == "" {
+		dbHost = "localhost"
+	}
+
+	dsnFormat := viper.GetString("DATABASE_DSN")
+	formattedDSN := fmt.Sprintf(dsnFormat, dbHost)
+	viper.Set("DATABASE_DSN", formattedDSN)
+
 	if err := viper.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+		log.Fatalf("Warning: failed to Unmarshal config file %s: %v\n", envFile, err)
 	}
 
 	return &cfg, nil
