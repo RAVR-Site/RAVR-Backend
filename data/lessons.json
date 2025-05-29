@@ -1,8 +1,8 @@
 [
   {
     "type": "grammar",
-    "level": "beginner",
-    "mode": "theory",
+    "level": "1",
+    "mode": "easy",
     "english_level": "A1",
     "xp": 100,
     "lesson_data": {
