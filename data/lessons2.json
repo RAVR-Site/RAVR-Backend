@@ -1,0 +1,83 @@
+[
+  {
+    "type": "grammar",
+    "level": "1",
+    "mode": "easy",
+    "lesson_data": {
+      "condition": null,
+      "sentences": [
+        "Сегодня ни одно судно не обходится без нужного количества шлюпок"
+      ],
+      "variants": [
+        "Today no vessel can do without the required number of boats",
+        "Today can no vessel do without the required number of boats",
+        "Today vessel can no do without the required number of boats",
+        "Today the vessel can do without no required number of boats"
+      ],
+      "answer_index": [
+        0
+      ]
+    }
+  },
+  {
+    "type": "grammar",
+    "level": "2",
+    "mode": "easy",
+    "lesson_data": {
+      "condition": null,
+      "sentences": [
+        "Он создавался для наблюдений тусклых галактик  и квазаров"
+      ],
+      "variants": [
+        "It was designed to look faint at galaxies and quasars",
+        "It was designed to look at faint galaxies and quasars",
+        "It was designed look at faint galaxies and to quasars",
+        "Was it designed to look at faint galaxies and quasars"
+      ],
+      "answer_index": [
+        1
+      ]
+    }
+  }
+]
+//Или (если не важно где level)
+[
+  {
+    "type": "grammar",
+    "mode": "easy",
+    "lesson_data": [
+      {
+        "level": "1",
+        "condition": null,
+        "sentences": [
+          "Сегодня ни одно судно не обходится без нужного количества шлюпок"
+        ],
+        "variants": [
+          "Today no vessel can do without the required number of boats",
+          "Today can no vessel do without the required number of boats",
+          "Today vessel can no do without the required number of boats",
+          "Today the vessel can do without no required number of boats"
+        ],
+        "answer_index": [
+          0
+        ]
+      },
+      {
+        "level": "2",
+        "condition": null,
+        "sentences": [
+          "Он создавался для наблюдений тусклых галактик  и квазаров"
+        ],
+        "variants": [
+          "It was designed to look faint at galaxies and quasars",
+          "It was designed to look at faint galaxies and quasars",
+          "It was designed look at faint galaxies and to quasars",
+          "Was it designed to look at faint galaxies and quasars"
+        ],
+        "answer_index": [
+          1
+        ]
+      }
+    ]
+  }
+]
