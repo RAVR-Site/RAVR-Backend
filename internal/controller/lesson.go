@@ -23,58 +23,10 @@ func NewLessonController(svc service.LessonService, logger *zap.Logger) *LessonC
 	}
 }
 
-
-
-// GetLessonsByType возвращает первые 3 урока определенного типа и общее количество
-// @Summary Получение уроков по типу
-// @Description Возвращает первые 3 урока указанного типа и общее количество уроков этого типа
-// @Tags lessons
-// @Accept json
-// @Produce json
-// @Param type path string true "Тип урока"
-// @Success 200 {object} responses.Response
-// @Failure 400 {object} responses.Response
-// @Failure 500 {object} responses.Response
-// @Router /lessons/type/{type} [get]
-func (c *LessonController) GetLessonsByType(e echo.Context) error {
-	lessonType := e.Param("type")
-	if lessonType == "" {
-		return e.JSON(http.StatusBadRequest, responses.ErrorResponse("INVALID_REQUEST", "Тип урока не указан"))
-	}
-
-	// Получаем первые 3 урока
-	lessons, err := c.svc.GetLessonsByTypeWithLimit(lessonType, 3)
-	if err != nil {
-		c.logger.Error("Ошибка получения уроков по типу", zap.String("type", lessonType), zap.Error(err))
-		return e.JSON(http.StatusInternalServerError, responses.ErrorResponse("SERVER_ERROR", err.Error()))
-	}
-
-	// Получаем общее количество уроков этого типа
-	totalCount, err := c.svc.GetLessonsCountByType(lessonType)
-	if err != nil {
-		c.logger.Error("Ошибка получения количества уроков по типу", zap.String("type", lessonType), zap.Error(err))
-		return e.JSON(http.StatusInternalServerError, responses.ErrorResponse("SERVER_ERROR", err.Error()))
-	}
-
-	// Преобразование в DTO без lesson_data
-	lessonDTOs := make([]map[string]interface{}, len(lessons))
-	for i, lesson := range lessons {
-		lessonDTOs[i] = map[string]interface{}{
-			"id":            lesson.ID,
-			"type":          lesson.Type,
-			"level":         lesson.Level,
-			"mode":          lesson.Mode,
-			"english_level": lesson.EnglishLevel,
-			"xp":            lesson.XP,
-			"createdAt":     lesson.CreatedAt,
-			"updatedAt":     lesson.UpdatedAt,
-		}
-	}
-
-	return e.JSON(http.StatusOK, responses.DataResponse(map[string]interface{}{
-		"lessons":     lessonDTOs,
-		"total_count": totalCount,
-	}))
+// @Description Ответ с данными одного урока
+type SwaggerLessonResponse struct {
+	Success bool            `json:"success" example:"true"`
+	Data    *service.Lesson `json:"data"`
 }
 
 // GetLesson возвращает детали конкретного урока
@@ -84,25 +36,56 @@ func (c *LessonController) GetLessonsByType(e echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param id path int true "ID урока"
-// @Success 200 {object} responses.Response
-// @Failure 400 {object} responses.Response
-// @Failure 404 {object} responses.Response
-// @Failure 500 {object} responses.Response
+// @Success 200 {object} SwaggerLessonResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 404 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
 // @Router /lessons/{id} [get]
 func (c *LessonController) GetLesson(e echo.Context) error {
 	idStr := e.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		return e.JSON(http.StatusBadRequest, responses.ErrorResponse("INVALID_ID", "Некорректный ID урока"))
+		return e.JSON(http.StatusBadRequest, responses.Error("INVALID_ID", "Некорректный ID урока"))
 	}
 
-	lesson, err := c.svc.GetLessonWithParsedData(uint(id))
+	lesson, err := c.svc.GetLesson(uint(id))
 	if err != nil {
 		c.logger.Error("Ошибка получения урока", zap.String("id", idStr), zap.Error(err))
-		return e.JSON(http.StatusNotFound, responses.ErrorResponse("LESSON_NOT_FOUND", "Урок не найден"))
+		return e.JSON(http.StatusNotFound, responses.Error("LESSON_NOT_FOUND", "Урок не найден"))
 	}
 
-	return e.JSON(http.StatusOK, responses.DataResponse(lesson))
+	return e.JSON(http.StatusOK, responses.Success(lesson))
 }
 
+// @Description Ответ со списком уроков
+type SwaggerLessonsResponse struct {
+	Success bool              `json:"success" example:"true"`
+	Data    []*service.Lesson `json:"data"`
+}
 
+// GetLessonsByType возвращает уроки по типу
+// @Summary Получение уроков по типу
+// @Description Возвращает список уроков определенного типа
+// @Tags lessons
+// @Accept json
+// @Produce json
+// @Param type query string true "Тип урока"
+// @Success 200 {object} SwaggerLessonsResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
+// @Router /lessons [get]
+func (c *LessonController) GetLessonsByType(e echo.Context) error {
+	lessonType := e.QueryParam("type")
+
+	if lessonType == "" {
+		return e.JSON(http.StatusBadRequest, responses.Error("INVALID_QUERY", "Параметры type и mode обязательны"))
+	}
+
+	lessons, err := c.svc.GetLessonByType(lessonType)
+	if err != nil {
+		c.logger.Error("Ошибка получения уроков", zap.String("type", lessonType), zap.Error(err))
+		return e.JSON(http.StatusInternalServerError, responses.Error("INTERNAL_ERROR", "Ошибка получения уроков"))
+	}
+
+	return e.JSON(http.StatusOK, responses.Success(lessons))
+}

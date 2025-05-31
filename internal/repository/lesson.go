@@ -7,23 +7,21 @@ import (
 
 // Lesson представляет урок в базе данных
 type Lesson struct {
-	ID           uint      `gorm:"primaryKey" json:"id"`
-	Type         string    `gorm:"not null" json:"type"`
-	Level        string    `gorm:"not null" json:"level"`
-	Mode         string    `gorm:"not null" json:"mode"`
-	EnglishLevel string    `gorm:"not null" json:"english_level"` // Уровень владения английским (A1, A2, B1, B2, C1, C2)
-	XP           int       `gorm:"not null" json:"xp"`
-	LessonData   []byte    `gorm:"type:jsonb;not null" json:"lesson_data"`
-	CreatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	ID         uint      `gorm:"primaryKey" json:"id"`
+	Type       string    `gorm:"not null" json:"type"`
+	Level      string    `gorm:"not null" json:"level"`
+	Mode       string    `gorm:"not null" json:"mode"`
+	LessonData []byte    `gorm:"type:jsonb;not null" json:"lesson_data"`
+	CreatedAt  time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt  time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 // LessonRepository интерфейс для работы с уроками
 type LessonRepository interface {
+	GetAll() ([]*Lesson, error)
 	Create(lesson *Lesson) error
 	GetByID(id uint) (*Lesson, error)
-	GetByTypeWithLimit(lessonType string, limit int) ([]*Lesson, error)
-	GetCountByType(lessonType string) (int64, error)
+	GetByType(lessonType string) ([]*Lesson, error)
 	Update(lesson *Lesson) error
 	Delete(id uint) error
 }
@@ -36,6 +34,16 @@ type lessonRepo struct {
 // NewLessonRepository создает новый экземпляр LessonRepository
 func NewLessonRepository(db *gorm.DB) LessonRepository {
 	return &lessonRepo{db}
+}
+
+// GetAll возвращает все уроки из базы данных
+func (r *lessonRepo) GetAll() ([]*Lesson, error) {
+	var lessons []*Lesson
+	err := r.db.Find(&lessons).Error
+	if err != nil {
+		return nil, err
+	}
+	return lessons, nil
 }
 
 // Create создает новый урок в базе данных
@@ -53,18 +61,11 @@ func (r *lessonRepo) GetByID(id uint) (*Lesson, error) {
 	return &lesson, nil
 }
 
-// GetByTypeWithLimit возвращает ограниченное количество уроков определенного типа
-func (r *lessonRepo) GetByTypeWithLimit(lessonType string, limit int) ([]*Lesson, error) {
+// GetByTypeMode возвращает уроки определенного типа
+func (r *lessonRepo) GetByType(lessonType string) ([]*Lesson, error) {
 	var lessons []*Lesson
-	err := r.db.Where("type = ?", lessonType).Limit(limit).Find(&lessons).Error
+	err := r.db.Where("type = ?", lessonType).Find(&lessons).Error
 	return lessons, err
-}
-
-// GetCountByType возвращает количество уроков определенного типа
-func (r *lessonRepo) GetCountByType(lessonType string) (int64, error) {
-	var count int64
-	err := r.db.Model(&Lesson{}).Where("type = ?", lessonType).Count(&count).Error
-	return count, err
 }
 
 // Update обновляет информацию об уроке
