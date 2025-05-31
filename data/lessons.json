@@ -1,359 +1,280 @@
 [
   {
     "type": "grammar",
-    "level": "1",
     "mode": "easy",
-    "english_level": "A1",
-    "xp": 100,
-    "lesson_data": {
-      "title": "Present Simple",
-      "description": "Изучение Present Simple в английском языке",
-      "content": [
-        {
-          "section": "Введение",
-          "text": "Present Simple - это время, которое используется для выражения регулярных, повторяющихся действий, привычек, общих истин и фактов."
-        },
-        {
-          "section": "Правила образования",
-          "text": "Для образования Present Simple используется инфинитив глагола без частицы to (для всех лиц кроме 3-го лица единственного числа) или с добавлением -s/-es (для 3-го лица единственного числа)."
-        },
-        {
-          "section": "Примеры",
-          "examples": [
-            "I work every day. - Я работаю каждый день.",
-            "She works every day. - Она работает каждый день.",
-            "The Sun rises in the east. - Солнце встает на востоке."
-          ]
-        }
-      ],
-      "quiz": [
-        {
-          "question": "He ___ to work every day.",
-          "options": [
-            "go",
-            "goes",
-            "going",
-            "is go"
-          ],
-          "answer": 1
-        },
-        {
-          "question": "I ___ speak Spanish.",
-          "options": [
-            "don't",
-            "doesn't",
-            "am not",
-            "do not"
-          ],
-          "answer": 0
-        }
-      ]
-    }
+    "lesson_data": [
+      {
+        "level": "1",
+        "condition": null,
+        "sentences": [
+          "Сегодня ни одно судно не обходится без нужного количества шлюпок"
+        ],
+        "variants": [
+          "Today no vessel can do without the required number of boats",
+          "Today can no vessel do without the required number of boats",
+          "Today vessel can no do without the required number of boats",
+          "Today the vessel can do without no required number of boats"
+        ],
+        "answer_index": [
+          0
+        ]
+      },
+      {
+        "level": "2",
+        "condition": null,
+        "sentences": [
+          "Он создавался для наблюдений тусклых галактик  и квазаров"
+        ],
+        "variants": [
+          "It was designed to look faint at galaxies and quasars",
+          "It was designed to look at faint galaxies and quasars",
+          "It was designed look at faint galaxies and to quasars",
+          "Was it designed to look at faint galaxies and quasars"
+        ],
+        "answer_index": [
+          1
+        ]
+      },
+      {
+        "level": "3",
+        "condition": null,
+        "sentences": [
+          "В обыденной речи этот процесс называют мышлением"
+        ],
+        "variants": [
+          "In ordinary speech is this process called thinking",
+          "In ordinary speech this is process called thinking",
+          "In ordinary called speech this process is thinking",
+          "In ordinary speech this process is called thinking"
+        ],
+        "answer_index": [
+          3
+        ]
+      }
+    ]
   },
   {
     "type": "grammar",
-    "level": "beginner",
-    "mode": "practice",
-    "english_level": "A1",
-    "xp": 120,
-    "lesson_data": {
-      "title": "Present Simple Practice",
-      "description": "Упражнения на Present Simple",
-      "exercises": [
-        {
-          "type": "fill-in-blanks",
-          "text": "She ___ (play) tennis every weekend.",
-          "answer": "plays"
-        },
-        {
-          "type": "fill-in-blanks",
-          "text": "They ___ (not/work) on Sundays.",
-          "answer": "don't work"
-        },
-        {
-          "type": "multiple-choice",
-          "question": "When ___ the train arrive?",
-          "options": [
-            "do",
-            "does",
-            "is",
-            "are"
-          ],
-          "answer": 1
-        }
-      ]
-    }
+    "mode": "hard",
+    "lesson_data": [
+      {
+        "level": "1",
+        "condition": null,
+        "sentences": [
+          "Он совершил преступление на камеру в этот раз"
+        ],
+        "variants": [
+          "This time felony committed he on a camera",
+          "He committed a felony on camera this time",
+          "He committed this felony on a camera time",
+          "On this time he committed a camera felony"
+        ],
+        "answer_index": [
+          1
+        ]
+      },
+      {
+        "level": "2",
+        "condition": null,
+        "sentences": [
+          "Она сделала краш-тест манекен похожий на себя"
+        ],
+        "variants": [
+          "She made a test crash dummy of herself",
+          "She test a crash dummy made of herself",
+          "She made herself a crash test of dummy",
+          "She made a crash test dummy of herself"
+        ],
+        "answer_index": [
+          3
+        ]
+      },
+      {
+        "level": "3",
+        "condition": null,
+        "sentences": [
+          "Уютное одеяло сделало прохладный вечер таким же теплым как объятия"
+        ],
+        "variants": [
+          "The cozy blanket made the chilly evening feel as warm as hugs",
+          "The chilly evening made feel as hugs as the cozy warm blanket",
+          "The cozy blanket feel as hugs as made the chilly warm evening",
+          "The cozy blanket made the chilly evening feel as hugs as warm"
+        ],
+        "answer_index": [
+          0
+        ]
+      }
+    ]
   },
   {
     "type": "vocabulary",
-    "level": "beginner",
-    "mode": "theory",
-    "english_level": "A1",
-    "xp": 80,
-    "lesson_data": {
-      "title": "Basic Everyday Vocabulary",
-      "description": "Основные слова для повседневного общения",
-      "word_groups": [
-        {
-          "category": "Greetings",
-          "words": [
-            {
-              "word": "Hello",
-              "translation": "Привет",
-              "example": "Hello, how are you?"
-            },
-            {
-              "word": "Goodbye",
-              "translation": "До свидания",
-              "example": "Goodbye, see you tomorrow."
-            },
-            {
-              "word": "Good morning",
-              "translation": "Доброе утро",
-              "example": "Good morning, did you sleep well?"
-            }
-          ]
-        },
-        {
-          "category": "Common Verbs",
-          "words": [
-            {
-              "word": "Go",
-              "translation": "Идти",
-              "example": "I go to school every day."
-            },
-            {
-              "word": "Eat",
-              "translation": "Есть",
-              "example": "We eat lunch at 12:00."
-            },
-            {
-              "word": "Sleep",
-              "translation": "Спать",
-              "example": "Children sleep for 8-10 hours."
-            }
-          ]
-        }
-      ]
-    }
+    "mode": "easy",
+    "lesson_data": [
+      {
+        "level": "1",
+        "condition": null,
+        "sentences": [],
+        "variants": [
+          "Faint - тусклый",
+          "Curb - обуздать",
+          "Get - получать",
+          "Tiptoe - на цыпочках",
+          "Beat - ритм",
+          "Clear - ясный"
+        ],
+        "answer_index": []
+      },
+      {
+        "level": "2",
+        "condition": null,
+        "sentences": [],
+        "variants": [
+          "Direct - режиссировать",
+          "Face - лицо",
+          "Fancy - шикарный",
+          "Fit - подходить",
+          "Fire - стрельба",
+          "Stroke - росчерк"
+        ],
+        "answer_index": []
+      },
+      {
+        "level": "3",
+        "condition": null,
+        "sentences": [],
+        "variants": [
+          "Milestone - мильный камень",
+          "Muzzle - морда",
+          "Gut - кишечник",
+          "Stiff - крепкий",
+          "Hull - фюзеляж",
+          "Weasel - горностай"
+        ],
+        "answer_index": []
+      }
+    ]
   },
   {
     "type": "vocabulary",
-    "level": "intermediate",
-    "mode": "practice",
-    "english_level": "B1",
-    "xp": 150,
-    "lesson_data": {
-      "title": "Phrasal Verbs",
-      "description": "Фразовые глаголы в английском языке",
-      "exercises": [
-        {
-          "type": "match",
-          "pairs": [
-            {
-              "left": "give up",
-              "right": "отказываться"
-            },
-            {
-              "left": "look after",
-              "right": "заботиться"
-            },
-            {
-              "left": "get along",
-              "right": "ладить"
-            }
-          ]
-        },
-        {
-          "type": "fill-in-blanks",
-          "text": "I need to ___ ___ (отказаться) smoking.",
-          "answer": "give up"
-        }
-      ]
-    }
+    "mode": "hard",
+    "lesson_data": [
+      {
+        "level": "1",
+        "condition": null,
+        "sentences": [],
+        "variants": [
+          "Faint - тусклый / обморок",
+          "Get - получать / добираться",
+          "Tiptoe - на цыпочках / красться",
+          "Beat - победить / ритм"
+        ],
+        "answer_index": []
+      },
+      {
+        "level": "2",
+        "condition": null,
+        "sentences": [],
+        "variants": [
+          "Direct - режиссировать / показывать дорогу",
+          "Face - сталкиваться / лицо",
+          "Fire - стрельба / уволить",
+          "Stroke - инсульт / росчерк"
+        ],
+        "answer_index": []
+      },
+      {
+        "level": "3",
+        "condition": null,
+        "sentences": [],
+        "variants": [
+          "Milestone - достижение / мильный камень",
+          "Muzzle - заткнуть рот / морда",
+          "Gut - кишечник / внутренний голос",
+          "Weasel - горностай / хитрец"
+        ],
+        "answer_index": []
+      }
+    ]
   },
   {
-    "type": "listening",
-    "level": "intermediate",
-    "mode": "practice",
-    "english_level": "B1",
-    "xp": 200,
-    "lesson_data": {
-      "title": "Listening to News Reports",
-      "description": "Практика аудирования на основе новостных репортажей",
-      "audio_url": "https://example.com/audio/news-report-1.mp3",
-      "transcript": "In today's news, scientists have discovered a new species of butterfly in the Amazon rainforest. The butterfly, which has been named Morpho azure, has distinctive blue wings that can be seen from great distances.",
-      "questions": [
-        {
-          "question": "What was discovered?",
-          "options": [
-            "A new plant",
-            "A new butterfly",
-            "A new medicine",
-            "A new bird"
-          ],
-          "answer": 1
-        },
-        {
-          "question": "Where was it discovered?",
-          "options": [
-            "In Africa",
-            "In the Arctic",
-            "In the Amazon rainforest",
-            "In Australia"
-          ],
-          "answer": 2
-        }
-      ]
-    }
+    "type": "practice",
+    "mode": "easy",
+    "lesson_data": [
+      {
+        "level": "1",
+        "condition": "Be rude",
+        "sentences": [
+          "I don't want it",
+          "I am exhausted"
+        ],
+        "variants": [
+          "Whatever",
+          "Got it",
+          "You are not the only one",
+          "Me too"
+        ],
+        "answer_index": [
+          0,
+          2
+        ]
+      },
+      {
+        "level": "2",
+        "condition": "Obey",
+        "sentences": [
+          "No more talking, you hear me?",
+          "Just let me hear your voice again"
+        ],
+        "variants": [
+          "No, sir",
+          "(Nodding)",
+          "(Nodding)",
+          "Will that do?"
+        ],
+        "answer_index": [
+          1,
+          3
+        ]
+      }
+    ]
   },
   {
-    "type": "speaking",
-    "level": "advanced",
-    "mode": "practice",
-    "english_level": "C1",
-    "xp": 250,
-    "lesson_data": {
-      "title": "Debating Current Issues",
-      "description": "Практика разговорной речи на основе обсуждения актуальных тем",
-      "topics": [
-        {
-          "title": "Climate Change",
-          "question": "Do you think individual actions can significantly impact climate change?",
-          "key_vocabulary": [
-            "mitigation",
-            "carbon footprint",
-            "sustainability",
-            "greenhouse effect"
-          ],
-          "suggested_structure": [
-            "Introduction: State your opinion",
-            "Point 1: First argument with examples",
-            "Point 2: Second argument with examples",
-            "Conclusion: Summarize your viewpoint"
-          ]
-        },
-        {
-          "title": "Online Education",
-          "question": "Is online education as effective as traditional classroom learning?",
-          "key_vocabulary": [
-            "e-learning",
-            "virtual classroom",
-            "engagement",
-            "self-discipline"
-          ],
-          "suggested_structure": [
-            "Introduction: Present your position",
-            "Point 1: Benefits or drawbacks of online education",
-            "Point 2: Comparison with traditional methods",
-            "Conclusion: Final assessment"
-          ]
-        }
-      ]
-    }
-  },
-  {
-    "type": "grammar",
-    "level": "intermediate",
-    "mode": "theory",
-    "english_level": "B2",
-    "xp": 180,
-    "lesson_data": {
-      "title": "Conditional Sentences",
-      "description": "Изучение условных предложений в английском языке",
-      "content": [
-        {
-          "section": "Zero Conditional",
-          "text": "Используется для выражения общих истин или научных фактов. Формула: If + Present Simple, Present Simple.",
-          "example": "If you heat water to 100°C, it boils."
-        },
-        {
-          "section": "First Conditional",
-          "text": "Используется для выражения реальных условий в будущем. Формула: If + Present Simple, will + infinitive.",
-          "example": "If it rains tomorrow, we will stay at home."
-        },
-        {
-          "section": "Second Conditional",
-          "text": "Используется для выражения нереальных или маловероятных условий в настоящем. Формула: If + Past Simple, would + infinitive.",
-          "example": "If I had more time, I would learn to play the piano."
-        },
-        {
-          "section": "Third Conditional",
-          "text": "Используется для выражения нереальных условий в прошлом. Формула: If + Past Perfect, would have + past participle.",
-          "example": "If I had studied harder, I would have passed the exam."
-        }
-      ],
-      "quiz": [
-        {
-          "question": "If I ___ enough money, I would buy a new car.",
-          "options": [
-            "have",
-            "had",
-            "would have",
-            "will have"
-          ],
-          "answer": 1
-        },
-        {
-          "question": "If it ___ yesterday, we ___ to the park.",
-          "options": [
-            "didn't rain, would go",
-            "hadn't rained, would go",
-            "hadn't rained, would have gone",
-            "didn't rain, went"
-          ],
-          "answer": 2
-        }
-      ]
-    }
-  },
-  {
-    "type": "reading",
-    "level": "advanced",
-    "mode": "practice",
-    "english_level": "C2",
-    "xp": 220,
-    "lesson_data": {
-      "title": "Literary Analysis",
-      "description": "Анализ литературного текста",
-      "text": "The old man and the sea is a novella written by Ernest Hemingway. It tells the story of Santiago, an aging fisherman who struggles with a giant marlin far out in the Gulf Stream. The novella uses a spare but suggestive style that has influenced many modern authors. The work won the Pulitzer Prize for Fiction in 1953 and contributed to Hemingway's Nobel Prize for Literature in 1954.",
-      "questions": [
-        {
-          "question": "What is the main theme of 'The Old Man and the Sea'?",
-          "options": [
-            "The futility of human existence",
-            "Man's struggle against nature and his own limitations",
-            "The importance of monetary success",
-            "The relationship between youth and age"
-          ],
-          "answer": 1
-        },
-        {
-          "question": "Which award did this work help Hemingway win?",
-          "options": [
-            "Academy Award",
-            "Booker Prize",
-            "Nobel Prize for Literature",
-            "National Book Award"
-          ],
-          "answer": 2
-        }
-      ],
-      "vocabulary": [
-        {
-          "word": "novella",
-          "definition": "A work of fiction intermediate in length and complexity between a short story and a novel"
-        },
-        {
-          "word": "marlin",
-          "definition": "A large game fish of the open ocean with an elongated body, a long rigid snout, and a long dorsal fin"
-        },
-        {
-          "word": "spare",
-          "definition": "Simple or plain in style; giving no elaboration"
-        }
-      ]
-    }
+    "type": "practice",
+    "mode": "hard",
+    "lesson_data": [
+      {
+        "level": "1",
+        "condition": "Be interested",
+        "sentences": [
+          "My brother got the first place",
+          "I think I have fallen in love"
+        ],
+        "variants": [
+          "I see",
+          "No way",
+          "Interesting"
+        ],
+        "answer_index": [
+          1
+        ]
+      },
+      {
+        "level": "2",
+        "condition": "Be jealous",
+        "sentences": [
+          "Wow, I look great in this dress",
+          "My groupmate is such a nice person"
+        ],
+        "variants": [
+          "Indeed",
+          "Can't deny that",
+          "That is why you are gonna stay at home"
+        ],
+        "answer_index": [
+          2
+        ]
+      }
+    ]
   }
 ]
-

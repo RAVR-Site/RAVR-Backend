@@ -12,9 +12,8 @@ import (
 type LessonService interface {
 	GetLesson(id uint) (*repository.Lesson, error)
 	GetLessonWithParsedData(id uint) (*LessonDTO, error)
-	GetAllLessons() ([]*repository.Lesson, error)
-	GetLessonsByType(lessonType string) ([]*repository.Lesson, error)
-	GetLessonTypes() ([]string, error)
+	GetLessonsByTypeWithLimit(lessonType string, limit int) ([]*repository.Lesson, error)
+	GetLessonsCountByType(lessonType string) (int64, error)
 	LoadLessonsFromFile(filePath string) error
 }
 
@@ -93,34 +92,24 @@ func (s *lessonService) GetLessonWithParsedData(id uint) (*LessonDTO, error) {
 	}, nil
 }
 
-// GetAllLessons возвращает все уроки
-func (s *lessonService) GetAllLessons() ([]*repository.Lesson, error) {
-	lessons, err := s.repo.GetAll()
+// GetLessonsByTypeWithLimit возвращает ограниченное количество уроков определенного типа
+func (s *lessonService) GetLessonsByTypeWithLimit(lessonType string, limit int) ([]*repository.Lesson, error) {
+	lessons, err := s.repo.GetByTypeWithLimit(lessonType, limit)
 	if err != nil {
-		s.logger.Error("Ошибка получения всех уроков", zap.Error(err))
-		return nil, fmt.Errorf("ошибка получения уроков: %w", err)
-	}
-	return lessons, nil
-}
-
-// GetLessonsByType возвращает все уроки определенного типа
-func (s *lessonService) GetLessonsByType(lessonType string) ([]*repository.Lesson, error) {
-	lessons, err := s.repo.GetAllByType(lessonType)
-	if err != nil {
-		s.logger.Error("Ошибка получения уроков по типу", zap.String("type", lessonType), zap.Error(err))
+		s.logger.Error("Ошибка получения уроков по типу с лимитом", zap.String("type", lessonType), zap.Int("limit", limit), zap.Error(err))
 		return nil, fmt.Errorf("ошибка получения уроков по типу: %w", err)
 	}
 	return lessons, nil
 }
 
-// GetLessonTypes возвращает список уникальных типов уроков
-func (s *lessonService) GetLessonTypes() ([]string, error) {
-	types, err := s.repo.GetUniqueTypes()
+// GetLessonsCountByType возвращает количество уроков определенного типа
+func (s *lessonService) GetLessonsCountByType(lessonType string) (int64, error) {
+	count, err := s.repo.GetCountByType(lessonType)
 	if err != nil {
-		s.logger.Error("Ошибка получения типов уроков", zap.Error(err))
-		return nil, fmt.Errorf("ошибка получения типов уроков: %w", err)
+		s.logger.Error("Ошибка получения количества уроков по типу", zap.String("type", lessonType), zap.Error(err))
+		return 0, fmt.Errorf("ошибка получения количества уроков по типу: %w", err)
 	}
-	return types, nil
+	return count, nil
 }
 
 // LoadLessonsFromFile загружает уроки из JSON файла
@@ -139,7 +128,7 @@ func (s *lessonService) LoadLessonsFromFile(filePath string) error {
 
 	for _, fileLesson := range fileLessons {
 		// Проверяем, существует ли урок с такими же параметрами
-		lessons, err := s.repo.GetAllByType(fileLesson.Type)
+		lessons, err := s.repo.GetByTypeWithLimit(fileLesson.Type, 1000) // Используем большой лимит для получения всех уроков
 		if err != nil {
 			s.logger.Error("Ошибка при проверке существующих уроков", zap.Error(err))
 			return err

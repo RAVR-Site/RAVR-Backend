@@ -22,9 +22,8 @@ type Lesson struct {
 type LessonRepository interface {
 	Create(lesson *Lesson) error
 	GetByID(id uint) (*Lesson, error)
-	GetAll() ([]*Lesson, error)
-	GetAllByType(lessonType string) ([]*Lesson, error)
-	GetUniqueTypes() ([]string, error)
+	GetByTypeWithLimit(lessonType string, limit int) ([]*Lesson, error)
+	GetCountByType(lessonType string) (int64, error)
 	Update(lesson *Lesson) error
 	Delete(id uint) error
 }
@@ -54,25 +53,18 @@ func (r *lessonRepo) GetByID(id uint) (*Lesson, error) {
 	return &lesson, nil
 }
 
-// GetAll возвращает все уроки
-func (r *lessonRepo) GetAll() ([]*Lesson, error) {
+// GetByTypeWithLimit возвращает ограниченное количество уроков определенного типа
+func (r *lessonRepo) GetByTypeWithLimit(lessonType string, limit int) ([]*Lesson, error) {
 	var lessons []*Lesson
-	err := r.db.Find(&lessons).Error
+	err := r.db.Where("type = ?", lessonType).Limit(limit).Find(&lessons).Error
 	return lessons, err
 }
 
-// GetAllByType возвращает все уроки определенного типа
-func (r *lessonRepo) GetAllByType(lessonType string) ([]*Lesson, error) {
-	var lessons []*Lesson
-	err := r.db.Where("type = ?", lessonType).Find(&lessons).Error
-	return lessons, err
-}
-
-// GetUniqueTypes возвращает список уникальных типов уроков
-func (r *lessonRepo) GetUniqueTypes() ([]string, error) {
-	var types []string
-	err := r.db.Model(&Lesson{}).Distinct().Pluck("type", &types).Error
-	return types, err
+// GetCountByType возвращает количество уроков определенного типа
+func (r *lessonRepo) GetCountByType(lessonType string) (int64, error) {
+	var count int64
+	err := r.db.Model(&Lesson{}).Where("type = ?", lessonType).Count(&count).Error
+	return count, err
 }
 
 // Update обновляет информацию об уроке

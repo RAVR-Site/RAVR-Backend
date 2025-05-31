@@ -74,7 +74,7 @@ func TestUserService_Login_InvalidPassword(t *testing.T) {
 
 	_, err := svc.Login("user", "wrong")
 	assert.Error(t, err)
-	assert.Equal(t, "invalid credentials", err.Error())
+	assert.Equal(t, "неверный пароль", err.Error())
 }
 
 func TestUserService_Login_UserNotFound(t *testing.T) {
@@ -85,7 +85,7 @@ func TestUserService_Login_UserNotFound(t *testing.T) {
 
 	_, err := svc.Login("nouser", "pass")
 	assert.Error(t, err)
-	assert.Equal(t, "invalid credentials", err.Error())
+	assert.Equal(t, "пользователь не найден", err.Error())
 }
 
 func TestUserService_GetByUsername(t *testing.T) {

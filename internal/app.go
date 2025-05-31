@@ -71,6 +71,11 @@ func (app *Application) Init() error {
 
 		e.Use(echomiddleware.Logger())
 		e.Use(echomiddleware.Recover())
+		e.Use(echomiddleware.CORSWithConfig(echomiddleware.CORSConfig{
+			AllowOrigins: []string{"http://localhost:5173"},
+			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+		}))
 
 		// Устанавливаем обработчик 404 ошибок
 		e.HTTPErrorHandler = func(err error, c echo.Context) {
@@ -157,15 +162,13 @@ func (app *Application) initControllers() error {
 
 		// Пользовательские маршруты, доступные без JWT аутентификации
 		userHandler := controller.NewUserController(userService, logger)
-		e.POST("/api/v1/user/login", userHandler.Login)
-		e.POST("/api/v1/user/register", userHandler.Register)
+		e.POST("/api/auth/login", userHandler.Login)
+		e.POST("/api/auth/register", userHandler.Register)
 
 		// Маршруты уроков, доступные без JWT аутентификации
 		lessonHandler := controller.NewLessonController(lessonService, logger)
-		e.GET("/api/v1/lessons/types", lessonHandler.GetLessonTypes)
 		e.GET("/api/v1/lessons/type/:type", lessonHandler.GetLessonsByType)
 		e.GET("/api/v1/lessons/:id", lessonHandler.GetLesson)
-		e.GET("/api/v1/lessons", lessonHandler.GetAllLessons)
 
 		// Создаем группу для защищенных маршрутов
 		api := e.Group("/api/v1")

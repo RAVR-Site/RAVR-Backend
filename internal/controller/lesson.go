@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"github.com/Ravr-Site/Ravr-Backend/internal/responses"
 	"github.com/Ravr-Site/Ravr-Backend/internal/service"
 	"github.com/labstack/echo/v4"
@@ -24,29 +23,11 @@ func NewLessonController(svc service.LessonService, logger *zap.Logger) *LessonC
 	}
 }
 
-// GetLessonTypes возвращает список уникальных типов уроков
-// @Summary Получение типов уроков
-// @Description Возвращает список всех уникальных типов уроков
-// @Tags lessons
-// @Accept json
-// @Produce json
-// @Success 200 {object} responses.Response
-// @Failure 500 {object} responses.Response
-// @Router /lessons/types [get]
-func (c *LessonController) GetLessonTypes(e echo.Context) error {
-	types, err := c.svc.GetLessonTypes()
-	if err != nil {
-		c.logger.Error("Ошибка получения типов уроков", zap.Error(err))
-		return e.JSON(http.StatusInternalServerError, responses.ErrorResponse("SERVER_ERROR", err.Error()))
-	}
-	return e.JSON(http.StatusOK, responses.DataResponse(map[string]interface{}{
-		"types": types,
-	}))
-}
 
-// GetLessonsByType возвращает список уроков определенного типа
+
+// GetLessonsByType возвращает первые 3 урока определенного типа и общее количество
 // @Summary Получение уроков по типу
-// @Description Возвращает список всех уроков указанного типа
+// @Description Возвращает первые 3 урока указанного типа и общее количество уроков этого типа
 // @Tags lessons
 // @Accept json
 // @Produce json
@@ -61,21 +42,23 @@ func (c *LessonController) GetLessonsByType(e echo.Context) error {
 		return e.JSON(http.StatusBadRequest, responses.ErrorResponse("INVALID_REQUEST", "Тип урока не указан"))
 	}
 
-	lessons, err := c.svc.GetLessonsByType(lessonType)
+	// Получаем первые 3 урока
+	lessons, err := c.svc.GetLessonsByTypeWithLimit(lessonType, 3)
 	if err != nil {
 		c.logger.Error("Ошибка получения уроков по типу", zap.String("type", lessonType), zap.Error(err))
 		return e.JSON(http.StatusInternalServerError, responses.ErrorResponse("SERVER_ERROR", err.Error()))
 	}
 
-	// Преобразование в DTO с парсингом JSON
+	// Получаем общее количество уроков этого типа
+	totalCount, err := c.svc.GetLessonsCountByType(lessonType)
+	if err != nil {
+		c.logger.Error("Ошибка получения количества уроков по типу", zap.String("type", lessonType), zap.Error(err))
+		return e.JSON(http.StatusInternalServerError, responses.ErrorResponse("SERVER_ERROR", err.Error()))
+	}
+
+	// Преобразование в DTO без lesson_data
 	lessonDTOs := make([]map[string]interface{}, len(lessons))
 	for i, lesson := range lessons {
-		var lessonData map[string]interface{}
-		if err := json.Unmarshal(lesson.LessonData, &lessonData); err != nil {
-			c.logger.Error("Ошибка десериализации данных урока", zap.Error(err))
-			continue
-		}
-
 		lessonDTOs[i] = map[string]interface{}{
 			"id":            lesson.ID,
 			"type":          lesson.Type,
@@ -89,7 +72,8 @@ func (c *LessonController) GetLessonsByType(e echo.Context) error {
 	}
 
 	return e.JSON(http.StatusOK, responses.DataResponse(map[string]interface{}{
-		"lessons": lessonDTOs,
+		"lessons":     lessonDTOs,
+		"total_count": totalCount,
 	}))
 }
 
@@ -121,44 +105,4 @@ func (c *LessonController) GetLesson(e echo.Context) error {
 	return e.JSON(http.StatusOK, responses.DataResponse(lesson))
 }
 
-// GetAllLessons возвращает все уроки
-// @Summary Получение всех уроков
-// @Description Возвращает список всех уроков
-// @Tags lessons
-// @Accept json
-// @Produce json
-// @Success 200 {object} responses.Response
-// @Failure 500 {object} responses.Response
-// @Router /lessons [get]
-func (c *LessonController) GetAllLessons(e echo.Context) error {
-	lessons, err := c.svc.GetAllLessons()
-	if err != nil {
-		c.logger.Error("Ошибка получения всех уроков", zap.Error(err))
-		return e.JSON(http.StatusInternalServerError, responses.ErrorResponse("SERVER_ERROR", err.Error()))
-	}
 
-	// Преобразование в DTO с парсингом JSON
-	lessonDTOs := make([]map[string]interface{}, len(lessons))
-	for i, lesson := range lessons {
-		var lessonData map[string]interface{}
-		if err := json.Unmarshal(lesson.LessonData, &lessonData); err != nil {
-			c.logger.Error("Ошибка десериализации данных урока", zap.Error(err))
-			continue
-		}
-
-		lessonDTOs[i] = map[string]interface{}{
-			"id":            lesson.ID,
-			"type":          lesson.Type,
-			"level":         lesson.Level,
-			"mode":          lesson.Mode,
-			"english_level": lesson.EnglishLevel,
-			"xp":            lesson.XP,
-			"createdAt":     lesson.CreatedAt,
-			"updatedAt":     lesson.UpdatedAt,
-		}
-	}
-
-	return e.JSON(http.StatusOK, responses.DataResponse(map[string]interface{}{
-		"lessons": lessonDTOs,
-	}))
-}
