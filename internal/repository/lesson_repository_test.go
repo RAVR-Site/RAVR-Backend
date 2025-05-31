@@ -111,56 +111,37 @@ func TestLessonRepository_GetByID(t *testing.T) {
 	assert.Nil(t, lesson)
 }
 
-func TestLessonRepository_GetAll(t *testing.T) {
+func TestLessonRepository_GetByTypeWithLimit(t *testing.T) {
 	db := setupTestDB(t)
 	repo := NewLessonRepository(db)
 	createTestLessons(t, db)
 
-	// Тест получения всех уроков
-	lessons, err := repo.GetAll()
-	assert.NoError(t, err)
-	assert.Len(t, lessons, 3)
-}
-
-func TestLessonRepository_GetAllByType(t *testing.T) {
-	db := setupTestDB(t)
-	repo := NewLessonRepository(db)
-	createTestLessons(t, db)
-
-	// Тест получения уроков по типу "grammar"
-	lessons, err := repo.GetAllByType("grammar")
-	assert.NoError(t, err)
-	assert.Len(t, lessons, 2)
-	for _, lesson := range lessons {
-		assert.Equal(t, "grammar", lesson.Type)
-	}
-	assert.Equal(t, "A1", lessons[0].EnglishLevel) // Проверка уровня английского для первого урока
-	assert.Equal(t, "B1", lessons[1].EnglishLevel) // Проверка уровня английского для второго урока
-
-	// Тест получения уроков по типу "vocabulary"
-	lessons, err = repo.GetAllByType("vocabulary")
+	// Тест получения уроков с лимитом
+	lessons, err := repo.GetByTypeWithLimit("grammar", 1)
 	assert.NoError(t, err)
 	assert.Len(t, lessons, 1)
-	assert.Equal(t, "vocabulary", lessons[0].Type)
-	assert.Equal(t, "A2", lessons[0].EnglishLevel) // Проверка уровня английского
-
-	// Тест получения уроков по несуществующему типу
-	lessons, err = repo.GetAllByType("nonexistent")
-	assert.NoError(t, err)
-	assert.Len(t, lessons, 0)
+	assert.Equal(t, "grammar", lessons[0].Type)
 }
 
-func TestLessonRepository_GetUniqueTypes(t *testing.T) {
+func TestLessonRepository_GetCountByType(t *testing.T) {
 	db := setupTestDB(t)
 	repo := NewLessonRepository(db)
 	createTestLessons(t, db)
 
-	// Тест получения уникальных типов уроков
-	types, err := repo.GetUniqueTypes()
+	// Тест получения количества уроков по типу "grammar"
+	count, err := repo.GetCountByType("grammar")
 	assert.NoError(t, err)
-	assert.Len(t, types, 2)
-	assert.Contains(t, types, "grammar")
-	assert.Contains(t, types, "vocabulary")
+	assert.Equal(t, int64(2), count)
+
+	// Тест получения количества уроков по типу "vocabulary"
+	count, err = repo.GetCountByType("vocabulary")
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), count)
+
+	// Тест получения количества уроков по несуществующему типу
+	count, err = repo.GetCountByType("nonexistent")
+	assert.NoError(t, err)
+	assert.Equal(t, int64(0), count)
 }
 
 func TestLessonRepository_Update(t *testing.T) {

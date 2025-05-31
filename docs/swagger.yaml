@@ -1,5 +1,65 @@
 basePath: /api/v1
 definitions:
+  controller.SwaggerLessonResponse:
+    description: Ответ с данными одного урока
+    properties:
+      data:
+        $ref: '#/definitions/service.Lesson'
+      success:
+        example: true
+        type: boolean
+    type: object
+  controller.SwaggerLessonsResponse:
+    description: Ответ со списком уроков
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/service.Lesson'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  controller.SwaggerMessageResponse:
+    description: Успешный ответ с сообщением
+    properties:
+      data:
+        additionalProperties:
+          type: string
+        type: object
+      success:
+        example: true
+        type: boolean
+    type: object
+  controller.SwaggerTokenResponse:
+    description: Успешный ответ с токеном авторизации
+    properties:
+      data:
+        properties:
+          token:
+            example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            type: string
+        type: object
+      success:
+        example: true
+        type: boolean
+    type: object
+  controller.SwaggerUserProfileResponse:
+    description: Ответ с данными профиля пользователя
+    properties:
+      data:
+        properties:
+          id:
+            example: 1
+            type: integer
+          username:
+            example: johndoe
+            type: string
+        type: object
+      success:
+        example: true
+        type: boolean
+    type: object
   controller.loginRequest:
     description: Запрос на вход в систему
     properties:
@@ -31,20 +91,30 @@ definitions:
   responses.ErrorInfo:
     properties:
       code:
-        example: INVALID_CREDENTIALS
         type: string
       message:
-        example: Неверный логин или пароль
         type: string
     type: object
-  responses.Response:
+  responses.ErrorResponse:
     properties:
-      data: {}
       error:
         $ref: '#/definitions/responses.ErrorInfo'
       success:
-        example: true
         type: boolean
+    type: object
+  service.Lesson:
+    properties:
+      id:
+        type: integer
+      lesson_data:
+        additionalProperties: true
+        type: object
+      level:
+        type: string
+      mode:
+        type: string
+      type:
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -64,19 +134,29 @@ paths:
     get:
       consumes:
       - application/json
-      description: Возвращает список всех уроков
+      description: Возвращает список уроков определенного типа
+      parameters:
+      - description: Тип урока
+        in: query
+        name: type
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/controller.SwaggerLessonsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/responses.Response'
-      summary: Получение всех уроков
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Получение уроков по типу
       tags:
       - lessons
   /lessons/{id}:
@@ -97,68 +177,20 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/controller.SwaggerLessonResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       summary: Получение детальной информации урока
-      tags:
-      - lessons
-  /lessons/type/{type}:
-    get:
-      consumes:
-      - application/json
-      description: Возвращает список всех уроков указанного типа
-      parameters:
-      - description: Тип урока
-        in: path
-        name: type
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/responses.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.Response'
-      summary: Получение уроков по типу
-      tags:
-      - lessons
-  /lessons/types:
-    get:
-      consumes:
-      - application/json
-      description: Возвращает список всех уникальных типов уроков
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/responses.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.Response'
-      summary: Получение типов уроков
       tags:
       - lessons
   /user:
@@ -172,15 +204,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/controller.SwaggerUserProfileResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Профиль пользователя
@@ -204,15 +236,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/controller.SwaggerTokenResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       summary: Вход в систему
       tags:
       - auth
@@ -234,11 +266,11 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/controller.SwaggerMessageResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/responses.Response'
+            $ref: '#/definitions/responses.ErrorResponse'
       summary: Регистрация нового пользователя
       tags:
       - auth

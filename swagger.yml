@@ -1,0 +1,292 @@
+swagger: '2.0'
+info:
+  title: RAVR Backend API
+  version: 1.0.0
+  description: API для взаимодействия с бэкендом RAVR
+basePath: /api
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  ApiKeyAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+paths:
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Вход в систему
+      description: Аутентифицирует пользователя и возвращает JWT токен
+      operationId: login
+      parameters:
+        - in: body
+          name: request
+          description: Учетные данные
+          required: true
+          schema:
+            $ref: '#/definitions/LoginRequest'
+      responses:
+        '200':
+          description: Успешный вход
+          schema:
+            $ref: '#/definitions/TokenSuccessResponse'
+        '400':
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Ошибка аутентификации
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /auth/register:
+    post:
+      tags:
+        - auth
+      summary: Регистрация нового пользователя
+      description: Создает нового пользователя с указанными учетными данными
+      operationId: register
+      parameters:
+        - in: body
+          name: request
+          description: Данные для регистрации
+          required: true
+          schema:
+            $ref: '#/definitions/RegisterRequest'
+      responses:
+        '201':
+          description: Успешная регистрация
+          schema:
+            $ref: '#/definitions/MessageSuccessResponse'
+        '400':
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /v1/user:
+    get:
+      tags:
+        - user
+      summary: Профиль пользователя
+      description: Возвращает данные текущего аутентифицированного пользователя
+      operationId: profile
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Успешный запрос
+          schema:
+            $ref: '#/definitions/UserProfileResponse'
+        '401':
+          description: Не авторизован
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /v1/lessons:
+    get:
+      tags:
+        - lessons
+      summary: Получение уроков по типу
+      description: Возвращает список уроков определенного типа
+      operationId: getLessonsByType
+      parameters:
+        - in: query
+          name: type
+          description: Тип урока
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Успешный запрос
+          schema:
+            $ref: '#/definitions/LessonsArrayResponse'
+        '400':
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /v1/lessons/{id}:
+    get:
+      tags:
+        - lessons
+      summary: Получение детальной информации урока
+      description: Возвращает детальную информацию об уроке по его ID, включая полные данные урока
+      operationId: getLesson
+      parameters:
+        - in: path
+          name: id
+          description: ID урока
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Успешный запрос
+          schema:
+            $ref: '#/definitions/LessonResponse'
+        '400':
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Урок не найден
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+definitions:
+  LoginRequest:
+    type: object
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+        example: "johndoe"
+      password:
+        type: string
+        example: "secret123"
+  RegisterRequest:
+    type: object
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+        example: "johndoe"
+      password:
+        type: string
+        example: "secret123"
+  SuccessResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: object
+  ErrorResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: false
+      error:
+        $ref: '#/definitions/ErrorInfo'
+  ErrorInfo:
+    type: object
+    properties:
+      code:
+        type: string
+        example: "INVALID_CREDENTIALS"
+      message:
+        type: string
+        example: "Неверный логин или пароль"
+  TokenResponse:
+    type: object
+    properties:
+      token:
+        type: string
+        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG5kb2UiLCJleHAiOjE2MjM0NTY3ODl9.XYZ"
+  UserResponse:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        example: 1
+      username:
+        type: string
+        example: "johndoe"
+  LessonResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/Lesson'
+  LessonsArrayResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Lesson'
+  UserProfileResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/UserResponse'
+  MessageSuccessResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: object
+        properties:
+          message:
+            type: string
+            example: "Пользователь успешно зарегистрирован"
+  TokenSuccessResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/TokenResponse'
+  Lesson:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      title:
+        type: string
+      description:
+        type: string
+      type:
+        type: string
+      words:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+            word:
+              type: string
+            translation:
+              type: string
+      sentences:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+            sentence:
+              type: string
+            translation:
+              type: string
+
