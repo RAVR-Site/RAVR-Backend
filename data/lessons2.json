@@ -1,49 +1,6 @@
 [
   {
     "type": "grammar",
-    "level": "1",
-    "mode": "easy",
-    "lesson_data": {
-      "condition": null,
-      "sentences": [
-        "Сегодня ни одно судно не обходится без нужного количества шлюпок"
-      ],
-      "variants": [
-        "Today no vessel can do without the required number of boats",
-        "Today can no vessel do without the required number of boats",
-        "Today vessel can no do without the required number of boats",
-        "Today the vessel can do without no required number of boats"
-      ],
-      "answer_index": [
-        0
-      ]
-    }
-  },
-  {
-    "type": "grammar",
-    "level": "2",
-    "mode": "easy",
-    "lesson_data": {
-      "condition": null,
-      "sentences": [
-        "Он создавался для наблюдений тусклых галактик  и квазаров"
-      ],
-      "variants": [
-        "It was designed to look faint at galaxies and quasars",
-        "It was designed to look at faint galaxies and quasars",
-        "It was designed look at faint galaxies and to quasars",
-        "Was it designed to look at faint galaxies and quasars"
-      ],
-      "answer_index": [
-        1
-      ]
-    }
-  }
-]
-//Или (если не важно где level)
-[
-  {
-    "type": "grammar",
     "mode": "easy",
     "lesson_data": [
       {
@@ -76,6 +33,246 @@
         ],
         "answer_index": [
           1
+        ]
+      },
+      {
+        "level": "3",
+        "condition": null,
+        "sentences": [
+          "В обыденной речи этот процесс называют мышлением"
+        ],
+        "variants": [
+          "In ordinary speech is this process called thinking",
+          "In ordinary speech this is process called thinking",
+          "In ordinary called speech this process is thinking",
+          "In ordinary speech this process is called thinking"
+        ],
+        "answer_index": [
+          3
+        ]
+      }
+    ]
+  },
+  {
+    "type": "grammar",
+    "mode": "hard",
+    "lesson_data": [
+      {
+        "level": "1",
+        "condition": null,
+        "sentences": [
+          "Он совершил преступление на камеру в этот раз"
+        ],
+        "variants": [
+          "This time felony committed he on a camera",
+          "He committed a felony on camera this time",
+          "He committed this felony on a camera time",
+          "On this time he committed a camera felony"
+        ],
+        "answer_index": [
+          1
+        ]
+      },
+      {
+        "level": "2",
+        "condition": null,
+        "sentences": [
+          "Она сделала краш-тест манекен похожий на себя"
+        ],
+        "variants": [
+          "She made a test crash dummy of herself",
+          "She test a crash dummy made of herself",
+          "She made herself a crash test of dummy",
+          "She made a crash test dummy of herself"
+        ],
+        "answer_index": [
+          3
+        ]
+      },
+      {
+        "level": "3",
+        "condition": null,
+        "sentences": [
+          "Уютное одеяло сделало прохладный вечер таким же теплым как объятия"
+        ],
+        "variants": [
+          "The cozy blanket made the chilly evening feel as warm as hugs",
+          "The chilly evening made feel as hugs as the cozy warm blanket",
+          "The cozy blanket feel as hugs as made the chilly warm evening",
+          "The cozy blanket made the chilly evening feel as hugs as warm"
+        ],
+        "answer_index": [
+          0
+        ]
+      }
+    ]
+  },
+  {
+    "type": "vocabulary",
+    "mode": "easy",
+    "lesson_data": [
+      {
+        "level": "1",
+        "condition": null,
+        "sentences": [],
+        "variants": [
+          "Faint - тусклый",
+          "Curb - обуздать",
+          "Get - получать",
+          "Tiptoe - на цыпочках",
+          "Beat - ритм",
+          "Clear - ясный"
+        ],
+        "answer_index": []
+      },
+      {
+        "level": "2",
+        "condition": null,
+        "sentences": [],
+        "variants": [
+          "Direct - режиссировать",
+          "Face - лицо",
+          "Fancy - шикарный",
+          "Fit - подходить",
+          "Fire - стрельба",
+          "Stroke - росчерк"
+        ],
+        "answer_index": []
+      },
+      {
+        "level": "3",
+        "condition": null,
+        "sentences": [],
+        "variants": [
+          "Milestone - мильный камень",
+          "Muzzle - морда",
+          "Gut - кишечник",
+          "Stiff - крепкий",
+          "Hull - фюзеляж",
+          "Weasel - горностай"
+        ],
+        "answer_index": []
+      }
+    ]
+  },
+  {
+    "type": "vocabulary",
+    "mode": "hard",
+    "lesson_data": [
+      {
+        "level": "1",
+        "condition": null,
+        "sentences": [],
+        "variants": [
+          "Faint - тусклый / обморок",
+          "Get - получать / добираться",
+          "Tiptoe - на цыпочках / красться",
+          "Beat - победить / ритм"
+        ],
+        "answer_index": []
+      },
+      {
+        "level": "2",
+        "condition": null,
+        "sentences": [],
+        "variants": [
+          "Direct - режиссировать / показывать дорогу",
+          "Face - сталкиваться / лицо",
+          "Fire - стрельба / уволить",
+          "Stroke - инсульт / росчерк"
+        ],
+        "answer_index": []
+      },
+      {
+        "level": "3",
+        "condition": null,
+        "sentences": [],
+        "variants": [
+          "Milestone - достижение / мильный камень",
+          "Muzzle - заткнуть рот / морда",
+          "Gut - кишечник / внутренний голос",
+          "Weasel - горностай / хитрец"
+        ],
+        "answer_index": []
+      }
+    ]
+  },
+  {
+    "type": "practice",
+    "mode": "easy",
+    "lesson_data": [
+      {
+        "level": "1",
+        "condition": "Be rude",
+        "sentences": [
+          "I don't want it",
+          "I am exhausted"
+        ],
+        "variants": [
+          "Whatever",
+          "Got it",
+          "You are not the only one",
+          "Me too"
+        ],
+        "answer_index": [
+          0,
+          2
+        ]
+      },
+      {
+        "level": "2",
+        "condition": "Obey",
+        "sentences": [
+          "No more talking, you hear me?",
+          "Just let me hear your voice again"
+        ],
+        "variants": [
+          "No, sir",
+          "(Nodding)",
+          "(Nodding)",
+          "Will that do?"
+        ],
+        "answer_index": [
+          1,
+          3
+        ]
+      }
+    ]
+  },
+  {
+    "type": "practice",
+    "mode": "hard",
+    "lesson_data": [
+      {
+        "level": "1",
+        "condition": "Be interested",
+        "sentences": [
+          "My brother got the first place",
+          "I think I have fallen in love"
+        ],
+        "variants": [
+          "I see",
+          "No way",
+          "Interesting"
+        ],
+        "answer_index": [
+          1
+        ]
+      },
+      {
+        "level": "2",
+        "condition": "Be jealous",
+        "sentences": [
+          "Wow, I look great in this dress",
+          "My groupmate is such a nice person"
+        ],
+        "variants": [
+          "Indeed",
+          "Can't deny that",
+          "That is why you are gonna stay at home"
+        ],
+        "answer_index": [
+          2
         ]
       }
     ]
