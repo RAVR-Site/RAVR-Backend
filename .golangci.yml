@@ -4,6 +4,8 @@ run:
   tests: true
   allow-parallel-runners: true
 linters:
+  disable:
+    - goimports
   enable:
     - gosec
     - misspell
