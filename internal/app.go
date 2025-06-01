@@ -1,10 +1,14 @@
 package internal
 
 import (
+	"net/http"
+	"os"
+
 	"github.com/Ravr-Site/Ravr-Backend/config"
 	"github.com/Ravr-Site/Ravr-Backend/internal/controller"
 	"github.com/Ravr-Site/Ravr-Backend/internal/middleware"
 	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
+	"github.com/Ravr-Site/Ravr-Backend/internal/responses"
 	"github.com/Ravr-Site/Ravr-Backend/internal/service"
 	"github.com/labstack/echo/v4"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
@@ -13,8 +17,6 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"net/http"
-	"os"
 )
 
 type Application struct {
@@ -71,6 +73,11 @@ func (app *Application) Init() error {
 
 		e.Use(echomiddleware.Logger())
 		e.Use(echomiddleware.Recover())
+		e.Use(echomiddleware.CORSWithConfig(echomiddleware.CORSConfig{
+			AllowOrigins: []string{"*"},
+			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+		}))
 
 		// Устанавливаем обработчик 404 ошибок
 		e.HTTPErrorHandler = func(err error, c echo.Context) {
@@ -146,33 +153,26 @@ func (app *Application) initControllers() error {
 		lessonService service.LessonService,
 		logger *zap.Logger,
 	) {
-		// Swagger routes
-		e.GET("/swagger/*", echoSwagger.WrapHandler)
-		e.GET("/swagger/doc.json", func(c echo.Context) error {
-			return c.File("./docs/swagger.json")
-		})
-		e.GET("/swagger/doc.yaml", func(c echo.Context) error {
-			return c.File("./docs/swagger.yaml")
+		e.GET("/", func(c echo.Context) error {
+			return c.JSON(http.StatusOK, responses.Success(e.Routes()))
 		})
 
-		// Пользовательские маршруты, доступные без JWT аутентификации
-		userHandler := controller.NewUserController(userService, logger)
-		e.POST("/api/v1/user/login", userHandler.Login)
-		e.POST("/api/v1/user/register", userHandler.Register)
+		svc := e.Group("/_")
+		svc.GET("/swagger/*", echoSwagger.WrapHandler)
 
-		// Маршруты уроков, доступные без JWT аутентификации
-		lessonHandler := controller.NewLessonController(lessonService, logger)
-		e.GET("/api/v1/lessons/types", lessonHandler.GetLessonTypes)
-		e.GET("/api/v1/lessons/type/:type", lessonHandler.GetLessonsByType)
-		e.GET("/api/v1/lessons/:id", lessonHandler.GetLesson)
-		e.GET("/api/v1/lessons", lessonHandler.GetAllLessons)
-
-		// Создаем группу для защищенных маршрутов
 		api := e.Group("/api/v1")
-		api.Use(middleware.JWTMiddleware(app.config.JWTSecret, app.config.JWTAccessExpiration, logger))
+		jwtMiddleware := middleware.JWTMiddleware(app.config.JWTSecret, app.config.JWTAccessExpiration, logger)
 
-		// Защищенные маршруты пользователя
-		api.GET("/user", userHandler.Profile)
+		authGroup := api.Group("/auth")
+		userHandler := controller.NewUserController(userService, logger)
+		authGroup.POST("/login", userHandler.Login)
+		authGroup.POST("/register", userHandler.Register)
+		authGroup.GET("/user", userHandler.Profile, jwtMiddleware)
+
+		lessonsGroup := api.Group("/lessons")
+		lessonHandler := controller.NewLessonController(lessonService, logger)
+		lessonsGroup.GET("", lessonHandler.GetLessonsByType)
+		lessonsGroup.GET("/:id", lessonHandler.GetLesson)
 	}); err != nil {
 		return err
 	}

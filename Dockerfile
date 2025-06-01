@@ -10,13 +10,13 @@ RUN go mod download
 COPY . .
 
 # Устанавливаем swag для генерации документации
-RUN go install github.com/swaggo/swag/cmd/swag@latest
+RUN go install github.com/swaggo/swag/cmd/swag@v1.16.3
 
-# Генерируем Swagger-документацию из директории cmd
+# Генерируем Swagger-документацию из кода
+# Используем -g для указания main файла и --parseDependency для поддержки дженериков
+RUN $(go env GOPATH)/bin/swag init -g cmd/main.go --parseDependency --parseInternal -o docs
 
-RUN $(go env GOPATH)/bin/swag init -g ./cmd/main.go --output ../docs
-
-# Возвращаемся в корневую директорию и собираем приложение
+# Собираем приложение
 RUN CGO_ENABLED=0 go build -o app ./cmd/main.go
 
 # Финальный образ на базе Alpine

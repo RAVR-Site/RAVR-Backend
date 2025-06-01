@@ -1,10 +1,11 @@
 package main
 
 import (
+	"log"
+
 	"github.com/Ravr-Site/Ravr-Backend/config"
 	_ "github.com/Ravr-Site/Ravr-Backend/docs" // Импорт для Swagger документации
 	"github.com/Ravr-Site/Ravr-Backend/internal"
-	"log"
 )
 
 // @title RAVR Backend API

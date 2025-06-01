@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+
 	"github.com/Ravr-Site/Ravr-Backend/internal/auth"
 	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
 
@@ -42,12 +43,12 @@ func (s *service) Register(username, password string) error {
 func (s *service) Login(username, password string) (string, error) {
 	user, err := s.repo.FindByUsername(username)
 	if err != nil || user == nil {
-		return "", errors.New("invalid credentials")
+		return "", errors.New("пользователь не найден")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return "", errors.New("invalid credentials")
+		return "", errors.New("неверный пароль")
 	}
 
 	// Генерируем токен с помощью JWT менеджера

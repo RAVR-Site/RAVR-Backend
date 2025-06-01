@@ -3,51 +3,44 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
-	"go.uber.org/zap"
 	"os"
+	"sort"
+	"strings"
+	"time"
+
+	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
+
+	"go.uber.org/zap"
 )
 
 // LessonService интерфейс сервиса для работы с уроками
 type LessonService interface {
-	GetLesson(id uint) (*repository.Lesson, error)
-	GetLessonWithParsedData(id uint) (*LessonDTO, error)
-	GetAllLessons() ([]*repository.Lesson, error)
-	GetLessonsByType(lessonType string) ([]*repository.Lesson, error)
-	GetLessonTypes() ([]string, error)
+	GetLesson(id uint) (*Lesson, error)
+	GetLessonByType(lessonType string) ([]LessonByType, error)
 	LoadLessonsFromFile(filePath string) error
 }
 
-// LessonDTO представляет данные урока с распарсенными JSON данными
-type LessonDTO struct {
-	ID           uint                   `json:"id"`
-	Type         string                 `json:"type"`
-	Level        string                 `json:"level"`
-	Mode         string                 `json:"mode"`
-	EnglishLevel string                 `json:"english_level"`
-	XP           int                    `json:"xp"`
-	LessonData   map[string]interface{} `json:"lesson_data"`
-	CreatedAt    string                 `json:"created_at"`
-	UpdatedAt    string                 `json:"updated_at"`
+// Lesson представляет данные урока с распарсенными JSON данными
+type Lesson struct {
+	ID         uint                   `json:"id"`
+	Type       string                 `json:"type"`
+	Level      uint                   `json:"level"`
+	Mode       string                 `json:"mode"`
+	LessonData map[string]interface{} `json:"lesson_data,omitempty"`
 }
 
 // FileLessonData представляет структуру для загрузки уроков из файла
 type FileLessonData struct {
-	Type         string                 `json:"type"`
-	Level        string                 `json:"level"`
-	Mode         string                 `json:"mode"`
-	EnglishLevel string                 `json:"english_level"`
-	XP           int                    `json:"xp"`
-	LessonData   map[string]interface{} `json:"lesson_data"`
+	Type       string                   `json:"type"`
+	Mode       string                   `json:"mode"`
+	LessonData []map[string]interface{} `json:"lesson_data"`
 }
 
-// lessonService имплементация LessonService
 type lessonService struct {
 	repo   repository.LessonRepository
 	logger *zap.Logger
 }
 
-// NewLessonService создает новый экземпляр LessonService
 func NewLessonService(repo repository.LessonRepository, logger *zap.Logger) LessonService {
 	return &lessonService{
 		repo:   repo,
@@ -55,72 +48,69 @@ func NewLessonService(repo repository.LessonRepository, logger *zap.Logger) Less
 	}
 }
 
-// GetLesson возвращает урок по ID
-func (s *lessonService) GetLesson(id uint) (*repository.Lesson, error) {
-	lesson, err := s.repo.GetByID(id)
-	if err != nil {
-		s.logger.Error("Ошибка получения урока", zap.Uint("id", id), zap.Error(err))
-		return nil, fmt.Errorf("урок не найден: %w", err)
-	}
-	return lesson, nil
+type LessonByType struct {
+	Level  uint `json:"level"`
+	EasyId uint `json:"easyId"`
+	HardId uint `json:"hardId"`
 }
 
-// GetLessonWithParsedData возвращает урок с распарсенными данными
-func (s *lessonService) GetLessonWithParsedData(id uint) (*LessonDTO, error) {
-	lesson, err := s.repo.GetByID(id)
-	if err != nil {
-		s.logger.Error("Ошибка получения урока", zap.Uint("id", id), zap.Error(err))
-		return nil, fmt.Errorf("урок не найден: %w", err)
-	}
-
-	// Распарсим JSON данные урока
-	var lessonData map[string]interface{}
-	if err := json.Unmarshal(lesson.LessonData, &lessonData); err != nil {
-		s.logger.Error("Ошибка десериализации данных урока", zap.Error(err))
-		return nil, fmt.Errorf("ошибка десериализации данных урока: %w", err)
-	}
-
-	return &LessonDTO{
-		ID:           lesson.ID,
-		Type:         lesson.Type,
-		Level:        lesson.Level,
-		Mode:         lesson.Mode,
-		EnglishLevel: lesson.EnglishLevel,
-		XP:           lesson.XP,
-		LessonData:   lessonData,
-		CreatedAt:    lesson.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt:    lesson.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-	}, nil
-}
-
-// GetAllLessons возвращает все уроки
-func (s *lessonService) GetAllLessons() ([]*repository.Lesson, error) {
-	lessons, err := s.repo.GetAll()
-	if err != nil {
-		s.logger.Error("Ошибка получения всех уроков", zap.Error(err))
-		return nil, fmt.Errorf("ошибка получения уроков: %w", err)
-	}
-	return lessons, nil
-}
-
-// GetLessonsByType возвращает все уроки определенного типа
-func (s *lessonService) GetLessonsByType(lessonType string) ([]*repository.Lesson, error) {
-	lessons, err := s.repo.GetAllByType(lessonType)
+func (s lessonService) GetLessonByType(lessonType string) ([]LessonByType, error) {
+	lessons, err := s.repo.GetByType(lessonType)
 	if err != nil {
 		s.logger.Error("Ошибка получения уроков по типу", zap.String("type", lessonType), zap.Error(err))
-		return nil, fmt.Errorf("ошибка получения уроков по типу: %w", err)
+		return nil, fmt.Errorf("ошибка получения уроков по типу %s: %w", lessonType, err)
 	}
-	return lessons, nil
+
+	result := make(map[uint]*LessonByType)
+	for _, lesson := range lessons {
+		if result[lesson.Level] == nil {
+			result[lesson.Level] = &LessonByType{
+				Level: lesson.Level,
+			}
+		}
+
+		switch lesson.Mode {
+		case "easy":
+			result[lesson.Level].EasyId = lesson.ID
+		case "hard":
+			result[lesson.Level].HardId = lesson.ID
+		default:
+			s.logger.Warn("Неизвестный режим урока", zap.String("mode", lesson.Mode), zap.Uint("id", lesson.ID))
+		}
+	}
+
+	var resultSlice []LessonByType
+	for _, lessonByType := range result {
+		if lessonByType.EasyId == 0 || lessonByType.HardId == 0 {
+			s.logger.Warn("Урок не содержит обоих режимов", zap.Uint("level", lessonByType.Level), zap.Uint("easyId", lessonByType.EasyId), zap.Uint("hardId", lessonByType.HardId))
+			continue
+		}
+		resultSlice = append(resultSlice, *lessonByType)
+	}
+	sort.Slice(resultSlice, func(i, j int) bool {
+		return resultSlice[i].Level < resultSlice[j].Level
+	})
+	return resultSlice, nil
 }
 
-// GetLessonTypes возвращает список уникальных типов уроков
-func (s *lessonService) GetLessonTypes() ([]string, error) {
-	types, err := s.repo.GetUniqueTypes()
+func (s *lessonService) GetLesson(id uint) (*Lesson, error) {
+	lesson, err := s.repo.GetByID(id)
 	if err != nil {
-		s.logger.Error("Ошибка получения типов уроков", zap.Error(err))
-		return nil, fmt.Errorf("ошибка получения типов уроков: %w", err)
+		s.logger.Error("Ошибка получения урока", zap.Uint("id", id), zap.Error(err))
+		return nil, fmt.Errorf("урок не найден: %w", err)
 	}
-	return types, nil
+	var lessonData map[string]interface{}
+	if err := json.Unmarshal(lesson.LessonData, &lessonData); err != nil {
+		s.logger.Error("Ошибка разбора данных урока", zap.Uint("id", lesson.ID), zap.Error(err))
+		return nil, fmt.Errorf("ошибка разбора данных урока: %w", err)
+	}
+	return &Lesson{
+		ID:         lesson.ID,
+		Type:       lesson.Type,
+		Level:      lesson.Level,
+		Mode:       lesson.Mode,
+		LessonData: lessonData,
+	}, nil
 }
 
 // LoadLessonsFromFile загружает уроки из JSON файла
@@ -137,76 +127,98 @@ func (s *lessonService) LoadLessonsFromFile(filePath string) error {
 		return fmt.Errorf("ошибка разбора файла с уроками: %w", err)
 	}
 
+	var lessons, lessonsFromDb []*repository.Lesson
+	lessonsFromDb, err = s.repo.GetAll()
+	if err != nil {
+		s.logger.Error("Ошибка получения всех уроков из базы данных", zap.Error(err))
+		return fmt.Errorf("ошибка получения уроков из базы данных: %w", err)
+	}
 	for _, fileLesson := range fileLessons {
-		// Проверяем, существует ли урок с такими же параметрами
-		lessons, err := s.repo.GetAllByType(fileLesson.Type)
-		if err != nil {
-			s.logger.Error("Ошибка при проверке существующих уроков", zap.Error(err))
-			return err
-		}
-
-		lessonExists := false
-		lessonDataJSON, err := json.Marshal(fileLesson.LessonData)
-		if err != nil {
-			s.logger.Error("Ошибка сериализации данных урока", zap.Error(err))
-			return err
-		}
-
-		// Проверка на дубликаты
-		for _, existingLesson := range lessons {
-			if existingLesson.Type == fileLesson.Type &&
-				existingLesson.Level == fileLesson.Level &&
-				existingLesson.Mode == fileLesson.Mode &&
-				existingLesson.EnglishLevel == fileLesson.EnglishLevel {
-				// Проверяем содержимое lesson_data
-				var existingData map[string]interface{}
-				if err := json.Unmarshal(existingLesson.LessonData, &existingData); err != nil {
-					s.logger.Error("Ошибка десериализации данных существующего урока", zap.Error(err))
-					continue
-				}
-
-				// Сравниваем содержимое уроков
-				existingDataJSON, err := json.Marshal(existingData)
-				if err != nil {
-					s.logger.Error("Ошибка сериализации данных существующего урока", zap.Error(err))
-					continue
-				}
-
-				// Здесь мы проверяем, совпадают ли данные уроков
-				if string(existingDataJSON) == string(lessonDataJSON) {
-					lessonExists = true
-					s.logger.Info("Урок уже существует, пропускаем",
-						zap.String("type", fileLesson.Type),
-						zap.String("level", fileLesson.Level),
-						zap.String("english_level", fileLesson.EnglishLevel))
-					break
-				}
+		for _, lessonData := range fileLesson.LessonData {
+			level, ok := lessonData["level"].(float64)
+			if !ok {
+				s.logger.Error("Некорректный уровень урока", zap.String("type", fileLesson.Type))
+				return fmt.Errorf("некорректный уровень урока: %s", fileLesson.Type)
 			}
-		}
-
-		// Если урок не существует, создаем его
-		if !lessonExists {
-			newLesson := &repository.Lesson{
-				Type:         fileLesson.Type,
-				Level:        fileLesson.Level,
-				Mode:         fileLesson.Mode,
-				EnglishLevel: fileLesson.EnglishLevel,
-				XP:           fileLesson.XP,
-				LessonData:   lessonDataJSON,
+			delete(lessonData, "level")
+			ld, err := json.Marshal(lessonData)
+			if err != nil {
+				s.logger.Error("Ошибка сериализации данных урока", zap.String("type", fileLesson.Type), zap.Error(err))
+				return fmt.Errorf("ошибка сериализации данных урока: %w", err)
 			}
-
-			if err := s.repo.Create(newLesson); err != nil {
-				s.logger.Error("Ошибка создания урока из файла", zap.Error(err))
-				return err
+			lesson := &repository.Lesson{
+				Type:       fileLesson.Type,
+				Mode:       fileLesson.Mode,
+				Level:      uint(level),
+				LessonData: ld,
+				CreatedAt:  time.Now(),
+				UpdatedAt:  time.Now(),
 			}
-
-			s.logger.Info("Создан новый урок",
-				zap.String("type", fileLesson.Type),
-				zap.String("level", fileLesson.Level),
-				zap.String("english_level", fileLesson.EnglishLevel))
+			lessons = append(lessons, lesson)
 		}
 	}
 
-	s.logger.Info("Загрузка уроков из файла завершена успешно", zap.Int("count", len(fileLessons)))
+	var lessonsToCreate []*repository.Lesson
+	seen := make(map[uint]*repository.Lesson)
+	// Проверяем, есть ли уже такие уроки в базе данных
+	for _, lesson := range lessons {
+		exists := false
+		for _, dbLesson := range lessonsFromDb {
+			if dbLesson.Type == lesson.Type && dbLesson.Mode == lesson.Mode && dbLesson.Level == lesson.Level {
+				err := validateLessonData(dbLesson.LessonData, lesson.LessonData)
+				if err != nil {
+					s.logger.Warn("Данные урока отличаются от данных в базе", zap.Uint("id", dbLesson.ID), zap.String("type", lesson.Type), zap.String("mode", lesson.Mode), zap.Uint("level", lesson.Level), zap.Error(err))
+				}
+				exists = true
+				seen[dbLesson.ID] = dbLesson
+				break
+			}
+		}
+		if !exists {
+			lessonsToCreate = append(lessonsToCreate, lesson)
+		} else {
+			s.logger.Info("Урок уже существует в базе данных", zap.String("type", lesson.Type), zap.String("mode", lesson.Mode), zap.Uint("level", lesson.Level))
+		}
+	}
+	for _, lesson := range lessonsToCreate {
+		if err := s.repo.Create(lesson); err != nil {
+			s.logger.Error("Ошибка создания урока в базе данных", zap.String("type", lesson.Type), zap.String("mode", lesson.Mode), zap.Uint("level", lesson.Level), zap.Error(err))
+			return fmt.Errorf("ошибка создания урока в базе данных: %w", err)
+		}
+	}
+
+	for _, dbLesson := range lessonsFromDb {
+		if seen[dbLesson.ID] == nil {
+			if err := s.repo.Delete(dbLesson.ID); err != nil {
+				s.logger.Error("Ошибка удаления урока в базе данных", zap.Uint("id", dbLesson.ID), zap.Error(err))
+				return fmt.Errorf("ошибка удаления урока в базе данных: %w", err)
+			}
+		}
+	}
+
+	s.logger.Info("Уроки успешно загружены из файла", zap.String("filePath", filePath), zap.Int("count", len(lessonsToCreate)))
 	return nil
+}
+
+func validateLessonData(dbLessonData, lessonData []byte) error {
+	var dbLessonMap, lessonMap map[string]interface{}
+	if err := json.Unmarshal(dbLessonData, &dbLessonMap); err != nil {
+		return fmt.Errorf("ошибка разбора данных урока из базы данных: %w", err)
+	}
+	if err := json.Unmarshal(lessonData, &lessonMap); err != nil {
+		return fmt.Errorf("ошибка разбора данных урока: %w", err)
+	}
+
+	for key, value := range lessonMap {
+		if dbValue, exists := dbLessonMap[key]; exists {
+			if !strings.EqualFold(fmt.Sprintf("%v", dbValue), fmt.Sprintf("%v", value)) {
+				return fmt.Errorf("данные урока отличаются по ключу %s: %v != %v", key, dbValue, value)
+			}
+		} else {
+			return fmt.Errorf("ключ %s отсутствует в данных урока из базы данных", key)
+		}
+	}
+
+	return nil
+
 }

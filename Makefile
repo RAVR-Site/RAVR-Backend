@@ -7,6 +7,9 @@ build:
 run:
 	go run ./cmd/main.go
 
+swag:
+	swag init -g ./cmd/main.go --output ./docs
+
 test:
 	go test ./...
 
@@ -33,6 +36,9 @@ up-infra:
 
 down:
 	docker compose down
+
+down-clear:
+	docker compose down --remove-orphans --volumes
 
 # Миграции
 migrate:
