@@ -29,7 +29,19 @@ WORKDIR /app
 
 # Копируем бинарник, документацию и конфигурационный файл
 COPY --from=builder /app/app .
-COPY --from=builder /app/docs ./docs/
+COPY --from=builder /app/docs/swagger.json ./docs/swagger.json
+COPY --from=builder /app/docs/swagger.yaml ./docs/swagger.yaml
+
+# Копируем директорию с данными уроков
+COPY --from=builder /app/data ./data
+
+# Копируем все конфигурационные файлы
+COPY config/.env.* /app/config/
+
+# Создаем непривилегированного пользователя
+RUN mkdir -p /app/config && chown -R 1000:1000 /app
+USER 1000:1000
 
 EXPOSE 8080
+
 CMD ["./app"]
