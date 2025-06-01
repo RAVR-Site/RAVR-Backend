@@ -67,13 +67,13 @@ func (s lessonService) GetLessonByType(lessonType string) ([]LessonByType, error
 			}
 		}
 
-		if lesson.Mode == "easy" {
+		switch lesson.Mode {
+		case "easy":
 			result[lesson.Level].EasyId = lesson.ID
-		} else if lesson.Mode == "hard" {
+		case "hard":
 			result[lesson.Level].HardId = lesson.ID
-		} else {
+		default:
 			s.logger.Warn("Неизвестный режим урока", zap.String("mode", lesson.Mode), zap.Uint("id", lesson.ID))
-			continue
 		}
 	}
 
