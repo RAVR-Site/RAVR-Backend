@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+
 	"github.com/Ravr-Site/Ravr-Backend/internal/auth"
 	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
 

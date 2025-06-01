@@ -3,12 +3,13 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
-	"go.uber.org/zap"
 	"os"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
+	"go.uber.org/zap"
 )
 
 // LessonService интерфейс сервиса для работы с уроками

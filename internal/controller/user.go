@@ -1,12 +1,13 @@
 package controller
 
 import (
+	"net/http"
+
 	"github.com/Ravr-Site/Ravr-Backend/internal/responses"
 	"github.com/Ravr-Site/Ravr-Backend/internal/service"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 // Типы для Swagger документации (без дженериков)
