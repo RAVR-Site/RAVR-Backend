@@ -14,7 +14,7 @@ definitions:
     properties:
       data:
         items:
-          $ref: '#/definitions/service.Lesson'
+          $ref: '#/definitions/service.LessonByType'
         type: array
       success:
         example: true
@@ -110,11 +110,20 @@ definitions:
         additionalProperties: true
         type: object
       level:
-        type: string
+        type: integer
       mode:
         type: string
       type:
         type: string
+    type: object
+  service.LessonByType:
+    properties:
+      easyId:
+        type: integer
+      hardId:
+        type: integer
+      level:
+        type: integer
     type: object
 host: localhost:8080
 info:
@@ -158,6 +167,32 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
       summary: Вход в систему
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создает нового пользователя с указанными учетными данными
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.SwaggerMessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Регистрация нового пользователя
       tags:
       - auth
   /auth/user:
@@ -248,32 +283,6 @@ paths:
       summary: Получение детальной информации урока
       tags:
       - lessons
-  /user/register:
-    post:
-      consumes:
-      - application/json
-      description: Создает нового пользователя с указанными учетными данными
-      parameters:
-      - description: Данные для регистрации
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/controller.registerRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/controller.SwaggerMessageResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      summary: Регистрация нового пользователя
-      tags:
-      - auth
 securityDefinitions:
   ApiKeyAuth:
     in: header

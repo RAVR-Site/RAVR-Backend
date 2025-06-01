@@ -70,6 +70,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/register": {
+            "post": {
+                "description": "Создает нового пользователя с указанными учетными данными",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Регистрация нового пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные для регистрации",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.registerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/controller.SwaggerMessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/user": {
             "get": {
                 "security": [
@@ -203,46 +243,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/user/register": {
-            "post": {
-                "description": "Создает нового пользователя с указанными учетными данными",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Регистрация нового пользователя",
-                "parameters": [
-                    {
-                        "description": "Данные для регистрации",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controller.registerRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/controller.SwaggerMessageResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -266,7 +266,7 @@ const docTemplate = `{
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/service.Lesson"
+                        "$ref": "#/definitions/service.LessonByType"
                     }
                 },
                 "success": {
@@ -404,13 +404,27 @@ const docTemplate = `{
                     "additionalProperties": true
                 },
                 "level": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "mode": {
                     "type": "string"
                 },
                 "type": {
                     "type": "string"
+                }
+            }
+        },
+        "service.LessonByType": {
+            "type": "object",
+            "properties": {
+                "easyId": {
+                    "type": "integer"
+                },
+                "hardId": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
                 }
             }
         }
