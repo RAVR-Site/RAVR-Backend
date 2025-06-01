@@ -1,6 +1,9 @@
 package internal
 
 import (
+	"net/http"
+	"os"
+
 	"github.com/Ravr-Site/Ravr-Backend/config"
 	"github.com/Ravr-Site/Ravr-Backend/internal/controller"
 	"github.com/Ravr-Site/Ravr-Backend/internal/middleware"
@@ -14,8 +17,6 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"net/http"
-	"os"
 )
 
 type Application struct {
