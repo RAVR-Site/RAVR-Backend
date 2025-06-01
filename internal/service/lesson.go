@@ -13,7 +13,7 @@ import (
 // LessonService интерфейс сервиса для работы с уроками
 type LessonService interface {
 	GetLesson(id uint) (*Lesson, error)
-	GetLessonByType(lessonType string) ([]*Lesson, error)
+	GetLessonByType(lessonType string) ([]LessonByType, error)
 	LoadLessonsFromFile(filePath string) error
 }
 
@@ -45,29 +45,46 @@ func NewLessonService(repo repository.LessonRepository, logger *zap.Logger) Less
 	}
 }
 
-func (s lessonService) GetLessonByType(lessonType string) ([]*Lesson, error) {
+type LessonByType struct {
+	Level  string `json:"level"`
+	EasyId uint   `json:"easyId"`
+	HardId uint   `json:"hardId"`
+}
+
+func (s lessonService) GetLessonByType(lessonType string) ([]LessonByType, error) {
 	lessons, err := s.repo.GetByType(lessonType)
 	if err != nil {
 		s.logger.Error("Ошибка получения уроков по типу", zap.String("type", lessonType), zap.Error(err))
 		return nil, fmt.Errorf("ошибка получения уроков по типу %s: %w", lessonType, err)
 	}
 
-	var result []*Lesson
+	result := make(map[string]*LessonByType)
 	for _, lesson := range lessons {
-		var lessonData map[string]interface{}
-		if err := json.Unmarshal(lesson.LessonData, &lessonData); err != nil {
-			s.logger.Error("Ошибка разбора данных урока", zap.Uint("id", lesson.ID), zap.Error(err))
-			return nil, fmt.Errorf("ошибка разбора данных урока: %w", err)
+		if result[lesson.Level] == nil {
+			result[lesson.Level] = &LessonByType{
+				Level: lesson.Level,
+			}
 		}
-		sLesson := &Lesson{
-			ID:    lesson.ID,
-			Type:  lesson.Type,
-			Level: lesson.Level,
-			Mode:  lesson.Mode,
+
+		if lesson.Mode == "easy" {
+			result[lesson.Level].EasyId = lesson.ID
+		} else if lesson.Mode == "hard" {
+			result[lesson.Level].HardId = lesson.ID
+		} else {
+			s.logger.Warn("Неизвестный режим урока", zap.String("mode", lesson.Mode), zap.Uint("id", lesson.ID))
+			continue
 		}
-		result = append(result, sLesson)
 	}
-	return result, nil
+
+	var resultSlice []LessonByType
+	for _, lessonByType := range result {
+		if lessonByType.EasyId == 0 || lessonByType.HardId == 0 {
+			s.logger.Warn("Урок не содержит обоих режимов", zap.String("level", lessonByType.Level), zap.Uint("easyId", lessonByType.EasyId), zap.Uint("hardId", lessonByType.HardId))
+			continue
+		}
+		resultSlice = append(resultSlice, *lessonByType)
+	}
+	return resultSlice, nil
 }
 
 func (s *lessonService) GetLesson(id uint) (*Lesson, error) {

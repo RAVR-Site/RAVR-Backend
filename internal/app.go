@@ -5,6 +5,7 @@ import (
 	"github.com/Ravr-Site/Ravr-Backend/internal/controller"
 	"github.com/Ravr-Site/Ravr-Backend/internal/middleware"
 	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
+	"github.com/Ravr-Site/Ravr-Backend/internal/responses"
 	"github.com/Ravr-Site/Ravr-Backend/internal/service"
 	"github.com/labstack/echo/v4"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
@@ -151,6 +152,10 @@ func (app *Application) initControllers() error {
 		lessonService service.LessonService,
 		logger *zap.Logger,
 	) {
+		e.GET("/", func(c echo.Context) error {
+			return c.JSON(http.StatusOK, responses.Success(e.Routes()))
+		})
+
 		svc := e.Group("/_")
 		svc.GET("/swagger/*", echoSwagger.WrapHandler)
 
@@ -165,7 +170,7 @@ func (app *Application) initControllers() error {
 
 		lessonsGroup := api.Group("/lessons")
 		lessonHandler := controller.NewLessonController(lessonService, logger)
-		lessonsGroup.GET("/", lessonHandler.GetLessonsByType)
+		lessonsGroup.GET("", lessonHandler.GetLessonsByType)
 		lessonsGroup.GET("/:id", lessonHandler.GetLesson)
 	}); err != nil {
 		return err

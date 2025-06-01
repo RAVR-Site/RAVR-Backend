@@ -59,8 +59,8 @@ func (c *LessonController) GetLesson(e echo.Context) error {
 
 // @Description Ответ со списком уроков
 type SwaggerLessonsResponse struct {
-	Success bool              `json:"success" example:"true"`
-	Data    []*service.Lesson `json:"data"`
+	Success bool                   `json:"success" example:"true"`
+	Data    []service.LessonByType `json:"data"`
 }
 
 // GetLessonsByType возвращает уроки по типу
