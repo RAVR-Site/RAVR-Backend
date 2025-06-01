@@ -4,8 +4,6 @@ run:
   tests: true
   allow-parallel-runners: true
 linters:
-  disable:
-    - goimports
   enable:
     - gosec
     - misspell
@@ -37,9 +35,6 @@ formatters:
   settings:
     gofmt:
       simplify: true
-    goimports:
-      local-prefixes:
-        - github.com/Ravr-Site/Ravr-Backend
   exclusions:
     generated: lax
     paths:
