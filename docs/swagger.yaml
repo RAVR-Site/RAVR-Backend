@@ -130,6 +130,61 @@ info:
   title: RAVR Backend API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Аутентифицирует пользователя и возвращает JWT токен
+      parameters:
+      - description: Учетные данные
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.SwaggerTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Вход в систему
+      tags:
+      - auth
+  /auth/user:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает данные текущего аутентифицированного пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.SwaggerUserProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Профиль пользователя
+      tags:
+      - auth
   /lessons:
     get:
       consumes:
@@ -193,61 +248,6 @@ paths:
       summary: Получение детальной информации урока
       tags:
       - lessons
-  /user:
-    get:
-      consumes:
-      - application/json
-      description: Возвращает данные текущего аутентифицированного пользователя
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/controller.SwaggerUserProfileResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Профиль пользователя
-      tags:
-      - user
-  /user/login:
-    post:
-      consumes:
-      - application/json
-      description: Аутентифицирует пользователя и возвращает JWT токен
-      parameters:
-      - description: Учетные данные
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/controller.loginRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/controller.SwaggerTokenResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      summary: Вход в систему
-      tags:
-      - auth
   /user/register:
     post:
       consumes:

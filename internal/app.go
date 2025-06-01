@@ -151,25 +151,22 @@ func (app *Application) initControllers() error {
 		lessonService service.LessonService,
 		logger *zap.Logger,
 	) {
-		// Настройка Swagger документации
-		e.GET("/swagger/*", echoSwagger.WrapHandler)
+		svc := e.Group("/_")
+		svc.GET("/swagger/*", echoSwagger.WrapHandler)
 
-		// Пользовательские маршруты, доступные без JWT аутентификации
-		userHandler := controller.NewUserController(userService, logger)
-		e.POST("/api/auth/login", userHandler.Login)
-		e.POST("/api/auth/register", userHandler.Register)
-
-		// Маршруты уроков, доступные без JWT аутентификации
-		lessonHandler := controller.NewLessonController(lessonService, logger)
-		e.GET("/api/v1/lessons", lessonHandler.GetLessonsByType)
-		e.GET("/api/v1/lessons/:id", lessonHandler.GetLesson)
-
-		// Создаем группу для защищенных маршрутов
 		api := e.Group("/api/v1")
-		api.Use(middleware.JWTMiddleware(app.config.JWTSecret, app.config.JWTAccessExpiration, logger))
+		jwtMiddleware := middleware.JWTMiddleware(app.config.JWTSecret, app.config.JWTAccessExpiration, logger)
 
-		// Защищенные маршруты пользователя
-		api.GET("/user", userHandler.Profile)
+		authGroup := api.Group("/auth")
+		userHandler := controller.NewUserController(userService, logger)
+		authGroup.POST("/login", userHandler.Login)
+		authGroup.POST("/register", userHandler.Register)
+		authGroup.GET("/user", userHandler.Profile, jwtMiddleware)
+
+		lessonsGroup := api.Group("/lessons")
+		lessonHandler := controller.NewLessonController(lessonService, logger)
+		lessonsGroup.GET("/", lessonHandler.GetLessonsByType)
+		lessonsGroup.GET("/:id", lessonHandler.GetLesson)
 	}); err != nil {
 		return err
 	}
