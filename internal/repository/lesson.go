@@ -9,7 +9,7 @@ import (
 type Lesson struct {
 	ID         uint      `gorm:"primaryKey" json:"id"`
 	Type       string    `gorm:"not null" json:"type"`
-	Level      string    `gorm:"not null" json:"level"`
+	Level      uint      `gorm:"not null" json:"level"`
 	Mode       string    `gorm:"not null" json:"mode"`
 	LessonData []byte    `gorm:"type:jsonb;not null" json:"lesson_data"`
 	CreatedAt  time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`

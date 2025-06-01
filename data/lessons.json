@@ -4,7 +4,7 @@
     "mode": "easy",
     "lesson_data": [
       {
-        "level": "1",
+        "level": 1,
         "condition": null,
         "sentences": [
           "Сегодня ни одно судно не обходится без нужного количества шлюпок"
@@ -20,7 +20,7 @@
         ]
       },
       {
-        "level": "2",
+        "level": 2,
         "condition": null,
         "sentences": [
           "Он создавался для наблюдений тусклых галактик  и квазаров"
@@ -36,7 +36,7 @@
         ]
       },
       {
-        "level": "3",
+        "level": 3,
         "condition": null,
         "sentences": [
           "В обыденной речи этот процесс называют мышлением"
@@ -58,7 +58,7 @@
     "mode": "hard",
     "lesson_data": [
       {
-        "level": "1",
+        "level": 1,
         "condition": null,
         "sentences": [
           "Он совершил преступление на камеру в этот раз"
@@ -74,7 +74,7 @@
         ]
       },
       {
-        "level": "2",
+        "level": 2,
         "condition": null,
         "sentences": [
           "Она сделала краш-тест манекен похожий на себя"
@@ -90,7 +90,7 @@
         ]
       },
       {
-        "level": "3",
+        "level": 3,
         "condition": null,
         "sentences": [
           "Уютное одеяло сделало прохладный вечер таким же теплым как объятия"
@@ -112,7 +112,7 @@
     "mode": "easy",
     "lesson_data": [
       {
-        "level": "1",
+        "level": 1,
         "condition": null,
         "sentences": [],
         "variants": [
@@ -126,7 +126,7 @@
         "answer_index": []
       },
       {
-        "level": "2",
+        "level": 2,
         "condition": null,
         "sentences": [],
         "variants": [
@@ -140,7 +140,7 @@
         "answer_index": []
       },
       {
-        "level": "3",
+        "level": 3,
         "condition": null,
         "sentences": [],
         "variants": [
@@ -160,7 +160,7 @@
     "mode": "hard",
     "lesson_data": [
       {
-        "level": "1",
+        "level": 1,
         "condition": null,
         "sentences": [],
         "variants": [
@@ -172,7 +172,7 @@
         "answer_index": []
       },
       {
-        "level": "2",
+        "level": 2,
         "condition": null,
         "sentences": [],
         "variants": [
@@ -184,7 +184,7 @@
         "answer_index": []
       },
       {
-        "level": "3",
+        "level": 3,
         "condition": null,
         "sentences": [],
         "variants": [
@@ -202,7 +202,7 @@
     "mode": "easy",
     "lesson_data": [
       {
-        "level": "1",
+        "level": 1,
         "condition": "Be rude",
         "sentences": [
           "I don't want it",
@@ -220,7 +220,7 @@
         ]
       },
       {
-        "level": "2",
+        "level": 2,
         "condition": "Obey",
         "sentences": [
           "No more talking, you hear me?",
@@ -244,7 +244,7 @@
     "mode": "hard",
     "lesson_data": [
       {
-        "level": "1",
+        "level": 1,
         "condition": "Be interested",
         "sentences": [
           "My brother got the first place",
@@ -260,7 +260,7 @@
         ]
       },
       {
-        "level": "2",
+        "level": 2,
         "condition": "Be jealous",
         "sentences": [
           "Wow, I look great in this dress",

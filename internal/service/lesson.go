@@ -6,6 +6,7 @@ import (
 	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
 	"go.uber.org/zap"
 	"os"
+	"sort"
 	"strings"
 	"time"
 )
@@ -21,7 +22,7 @@ type LessonService interface {
 type Lesson struct {
 	ID         uint                   `json:"id"`
 	Type       string                 `json:"type"`
-	Level      string                 `json:"level"`
+	Level      uint                   `json:"level"`
 	Mode       string                 `json:"mode"`
 	LessonData map[string]interface{} `json:"lesson_data,omitempty"`
 }
@@ -46,9 +47,9 @@ func NewLessonService(repo repository.LessonRepository, logger *zap.Logger) Less
 }
 
 type LessonByType struct {
-	Level  string `json:"level"`
-	EasyId uint   `json:"easyId"`
-	HardId uint   `json:"hardId"`
+	Level  uint `json:"level"`
+	EasyId uint `json:"easyId"`
+	HardId uint `json:"hardId"`
 }
 
 func (s lessonService) GetLessonByType(lessonType string) ([]LessonByType, error) {
@@ -58,7 +59,7 @@ func (s lessonService) GetLessonByType(lessonType string) ([]LessonByType, error
 		return nil, fmt.Errorf("ошибка получения уроков по типу %s: %w", lessonType, err)
 	}
 
-	result := make(map[string]*LessonByType)
+	result := make(map[uint]*LessonByType)
 	for _, lesson := range lessons {
 		if result[lesson.Level] == nil {
 			result[lesson.Level] = &LessonByType{
@@ -79,11 +80,14 @@ func (s lessonService) GetLessonByType(lessonType string) ([]LessonByType, error
 	var resultSlice []LessonByType
 	for _, lessonByType := range result {
 		if lessonByType.EasyId == 0 || lessonByType.HardId == 0 {
-			s.logger.Warn("Урок не содержит обоих режимов", zap.String("level", lessonByType.Level), zap.Uint("easyId", lessonByType.EasyId), zap.Uint("hardId", lessonByType.HardId))
+			s.logger.Warn("Урок не содержит обоих режимов", zap.Uint("level", lessonByType.Level), zap.Uint("easyId", lessonByType.EasyId), zap.Uint("hardId", lessonByType.HardId))
 			continue
 		}
 		resultSlice = append(resultSlice, *lessonByType)
 	}
+	sort.Slice(resultSlice, func(i, j int) bool {
+		return resultSlice[i].Level < resultSlice[j].Level
+	})
 	return resultSlice, nil
 }
 
@@ -129,7 +133,7 @@ func (s *lessonService) LoadLessonsFromFile(filePath string) error {
 	}
 	for _, fileLesson := range fileLessons {
 		for _, lessonData := range fileLesson.LessonData {
-			level, ok := lessonData["level"].(string)
+			level, ok := lessonData["level"].(float64)
 			if !ok {
 				s.logger.Error("Некорректный уровень урока", zap.String("type", fileLesson.Type))
 				return fmt.Errorf("некорректный уровень урока: %s", fileLesson.Type)
@@ -143,7 +147,7 @@ func (s *lessonService) LoadLessonsFromFile(filePath string) error {
 			lesson := &repository.Lesson{
 				Type:       fileLesson.Type,
 				Mode:       fileLesson.Mode,
-				Level:      level,
+				Level:      uint(level),
 				LessonData: ld,
 				CreatedAt:  time.Now(),
 				UpdatedAt:  time.Now(),
@@ -161,7 +165,7 @@ func (s *lessonService) LoadLessonsFromFile(filePath string) error {
 			if dbLesson.Type == lesson.Type && dbLesson.Mode == lesson.Mode && dbLesson.Level == lesson.Level {
 				err := validateLessonData(dbLesson.LessonData, lesson.LessonData)
 				if err != nil {
-					s.logger.Warn("Данные урока отличаются от данных в базе", zap.Uint("id", dbLesson.ID), zap.String("type", lesson.Type), zap.String("mode", lesson.Mode), zap.String("level", lesson.Level), zap.Error(err))
+					s.logger.Warn("Данные урока отличаются от данных в базе", zap.Uint("id", dbLesson.ID), zap.String("type", lesson.Type), zap.String("mode", lesson.Mode), zap.Uint("level", lesson.Level), zap.Error(err))
 				}
 				exists = true
 				seen[dbLesson.ID] = dbLesson
@@ -171,12 +175,12 @@ func (s *lessonService) LoadLessonsFromFile(filePath string) error {
 		if !exists {
 			lessonsToCreate = append(lessonsToCreate, lesson)
 		} else {
-			s.logger.Info("Урок уже существует в базе данных", zap.String("type", lesson.Type), zap.String("mode", lesson.Mode), zap.String("level", lesson.Level))
+			s.logger.Info("Урок уже существует в базе данных", zap.String("type", lesson.Type), zap.String("mode", lesson.Mode), zap.Uint("level", lesson.Level))
 		}
 	}
 	for _, lesson := range lessonsToCreate {
 		if err := s.repo.Create(lesson); err != nil {
-			s.logger.Error("Ошибка создания урока в базе данных", zap.String("type", lesson.Type), zap.String("mode", lesson.Mode), zap.String("level", lesson.Level), zap.Error(err))
+			s.logger.Error("Ошибка создания урока в базе данных", zap.String("type", lesson.Type), zap.String("mode", lesson.Mode), zap.Uint("level", lesson.Level), zap.Error(err))
 			return fmt.Errorf("ошибка создания урока в базе данных: %w", err)
 		}
 	}
