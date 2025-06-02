@@ -127,6 +127,10 @@ func (app *Application) initRepositories() error {
 		return err
 	}
 
+	if err := app.container.Provide(repository.NewResultRepository); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -143,6 +147,12 @@ func (app *Application) initServices() error {
 		return err
 	}
 
+	if err := app.container.Provide(func(repo repository.ResultRepository, userRepo repository.UserRepository, userService service.UserService, logger *zap.Logger) service.ResultService {
+		return service.NewResultService(repo, userRepo, userService, logger)
+	},
+	); err != nil {
+	}
+
 	return nil
 }
 
@@ -151,6 +161,7 @@ func (app *Application) initControllers() error {
 		e *echo.Echo,
 		userService service.UserService,
 		lessonService service.LessonService,
+		resultService service.ResultService,
 		logger *zap.Logger,
 	) {
 		e.GET("/", func(c echo.Context) error {
@@ -173,6 +184,10 @@ func (app *Application) initControllers() error {
 		lessonHandler := controller.NewLessonController(lessonService, logger)
 		lessonsGroup.GET("", lessonHandler.GetLessonsByType)
 		lessonsGroup.GET("/:id", lessonHandler.GetLesson)
+
+		resultsGroup := api.Group("/results", jwtMiddleware)
+		resultHandler := controller.NewResultController(resultService, logger)
+		resultsGroup.POST("/save", resultHandler.Save)
 	}); err != nil {
 		return err
 	}
