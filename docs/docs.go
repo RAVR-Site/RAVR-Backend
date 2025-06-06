@@ -243,6 +243,57 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/results/save": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Save result for a lesson",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Results"
+                ],
+                "summary": "Save result",
+                "parameters": [
+                    {
+                        "description": "Save result request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.saveResultRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/controller.SwaggerResultSaveResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -284,6 +335,19 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "controller.SwaggerResultSaveResponse": {
+            "description": "Ответ с данными одного урока",
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/service.Leaderboard"
                 },
                 "success": {
                     "type": "boolean",
@@ -371,6 +435,19 @@ const docTemplate = `{
                 }
             }
         },
+        "controller.saveResultRequest": {
+            "type": "object",
+            "properties": {
+                "lesson_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "time_taken": {
+                    "type": "integer",
+                    "example": 120
+                }
+            }
+        },
         "responses.ErrorInfo": {
             "type": "object",
             "properties": {
@@ -390,6 +467,20 @@ const docTemplate = `{
                 },
                 "success": {
                     "type": "boolean"
+                }
+            }
+        },
+        "service.Leaderboard": {
+            "type": "object",
+            "properties": {
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.Result"
+                    }
+                },
+                "userPosition": {
+                    "type": "integer"
                 }
             }
         },
@@ -424,6 +515,23 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "level": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.Result": {
+            "type": "object",
+            "properties": {
+                "position": {
+                    "type": "integer"
+                },
+                "timeTaken": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "xp": {
                     "type": "integer"
                 }
             }

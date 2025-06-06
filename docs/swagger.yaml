@@ -31,6 +31,15 @@ definitions:
         example: true
         type: boolean
     type: object
+  controller.SwaggerResultSaveResponse:
+    description: Ответ с данными одного урока
+    properties:
+      data:
+        $ref: '#/definitions/service.Leaderboard'
+      success:
+        example: true
+        type: boolean
+    type: object
   controller.SwaggerTokenResponse:
     description: Успешный ответ с токеном авторизации
     properties:
@@ -88,6 +97,15 @@ definitions:
     - password
     - username
     type: object
+  controller.saveResultRequest:
+    properties:
+      lesson_id:
+        example: 1
+        type: integer
+      time_taken:
+        example: 120
+        type: integer
+    type: object
   responses.ErrorInfo:
     properties:
       code:
@@ -101,6 +119,15 @@ definitions:
         $ref: '#/definitions/responses.ErrorInfo'
       success:
         type: boolean
+    type: object
+  service.Leaderboard:
+    properties:
+      results:
+        items:
+          $ref: '#/definitions/service.Result'
+        type: array
+      userPosition:
+        type: integer
     type: object
   service.Lesson:
     properties:
@@ -123,6 +150,17 @@ definitions:
       hardId:
         type: integer
       level:
+        type: integer
+    type: object
+  service.Result:
+    properties:
+      position:
+        type: integer
+      timeTaken:
+        type: integer
+      username:
+        type: string
+      xp:
         type: integer
     type: object
 host: localhost:8080
@@ -283,6 +321,38 @@ paths:
       summary: Получение детальной информации урока
       tags:
       - lessons
+  /results/save:
+    post:
+      consumes:
+      - application/json
+      description: Save result for a lesson
+      parameters:
+      - description: Save result request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.saveResultRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/controller.SwaggerResultSaveResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Save result
+      tags:
+      - Results
 securityDefinitions:
   ApiKeyAuth:
     in: header
