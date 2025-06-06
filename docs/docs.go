@@ -114,7 +114,7 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "description": "Возвращает данные текущего аутентифицированного пользователя",
@@ -538,7 +538,8 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "ApiKeyAuth": {
+        "BearerAuth": {
+            "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer \u003ctoken\u003e\"",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
@@ -553,7 +554,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "RAVR Backend API",
-	Description:      "API для проекта RAVR",
+	Description:      "JWT Authorization header using the Bearer scheme. Example: \"Authorization",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

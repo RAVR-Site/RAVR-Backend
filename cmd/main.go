@@ -23,9 +23,10 @@ import (
 // @host localhost:8080
 // @BasePath /api/v1
 
-// @securityDefinitions.apikey ApiKeyAuth
+// @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
+// @description JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer <token>"
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
@@ -36,7 +37,7 @@ func main() {
 	if err := app.Init(); err != nil {
 		log.Fatalf("failed to initialize application: %v", err)
 	}
-
+	// @description JWT Authorization header using the Bearer scheme. Example: "Authorization
 	if err := app.Start(); err != nil {
 		log.Fatalf("failed to start application: %v", err)
 	}

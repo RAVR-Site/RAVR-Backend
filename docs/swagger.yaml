@@ -169,7 +169,7 @@ info:
     email: support@ravr-site.io
     name: API Support
     url: http://www.ravr-site.io/support
-  description: API для проекта RAVR
+  description: 'JWT Authorization header using the Bearer scheme. Example: "Authorization'
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -254,7 +254,7 @@ paths:
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Профиль пользователя
       tags:
       - auth
@@ -354,7 +354,9 @@ paths:
       tags:
       - Results
 securityDefinitions:
-  ApiKeyAuth:
+  BearerAuth:
+    description: 'JWT Authorization header using the Bearer scheme. Example: "Authorization:
+      Bearer <token>"'
     in: header
     name: Authorization
     type: apiKey

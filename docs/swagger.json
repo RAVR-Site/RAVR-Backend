@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "API для проекта RAVR",
+        "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization",
         "title": "RAVR Backend API",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
@@ -108,7 +108,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
                 "description": "Возвращает данные текущего аутентифицированного пользователя",
@@ -532,7 +532,8 @@
         }
     },
     "securityDefinitions": {
-        "ApiKeyAuth": {
+        "BearerAuth": {
+            "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer \u003ctoken\u003e\"",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

@@ -122,7 +122,7 @@ func (h *UserController) Login(c echo.Context) error {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Security ApiKeyAuth
+// @Security BearerAuth
 // @Success 200 {object} SwaggerUserProfileResponse
 // @Failure 401 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
