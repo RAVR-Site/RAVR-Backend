@@ -115,42 +115,42 @@
         "level": 1,
         "condition": null,
         "sentences": [],
-        "variants": [
-          "Faint - тусклый",
-          "Curb - обуздать",
-          "Get - получать",
-          "Tiptoe - на цыпочках",
-          "Beat - ритм",
-          "Clear - ясный"
-        ],
+        "variants": {
+          "Faint": "тусклый",
+          "Curb": "обуздать",
+          "Get": "получать",
+          "Tiptoe": "на цыпочках",
+          "Beat": "ритм",
+          "Clear": "ясный"
+        },
         "answer_index": []
       },
       {
         "level": 2,
         "condition": null,
         "sentences": [],
-        "variants": [
-          "Direct - режиссировать",
-          "Face - лицо",
-          "Fancy - шикарный",
-          "Fit - подходить",
-          "Fire - стрельба",
-          "Stroke - росчерк"
-        ],
+        "variants": {
+          "Direct": "режиссировать",
+          "Face": "лицо",
+          "Fancy": "шикарный",
+          "Fit": "подходить",
+          "Fire": "стрельба",
+          "Stroke": "росчерк"
+        },
         "answer_index": []
       },
       {
         "level": 3,
         "condition": null,
         "sentences": [],
-        "variants": [
-          "Milestone - мильный камень",
-          "Muzzle - морда",
-          "Gut - кишечник",
-          "Stiff - крепкий",
-          "Hull - фюзеляж",
-          "Weasel - горностай"
-        ],
+        "variants": {
+          "Milestone": "мильный камень",
+          "Muzzle": "морда",
+          "Gut": "кишечник",
+          "Stiff": "крепкий",
+          "Hull": "фюзеляж",
+          "Weasel": "горностай"
+        },
         "answer_index": []
       }
     ]
@@ -163,36 +163,36 @@
         "level": 1,
         "condition": null,
         "sentences": [],
-        "variants": [
-          "Faint - тусклый / обморок",
-          "Get - получать / добираться",
-          "Tiptoe - на цыпочках / красться",
-          "Beat - победить / ритм"
-        ],
+        "variants": {
+          "Faint": ["тусклый", "обморок"],
+          "Get": ["получать", "добираться"],
+          "Tiptoe": ["на цыпочках", "красться"],
+          "Beat": ["победить", "ритм"]
+        },
         "answer_index": []
       },
       {
         "level": 2,
         "condition": null,
         "sentences": [],
-        "variants": [
-          "Direct - режиссировать / показывать дорогу",
-          "Face - сталкиваться / лицо",
-          "Fire - стрельба / уволить",
-          "Stroke - инсульт / росчерк"
-        ],
+        "variants": {
+          "Direct": ["режиссировать", "показывать дорогу"],
+          "Face": ["сталкиваться", "лицо"],
+          "Fire": ["стрельба", "уволить"],
+          "Stroke": ["инсульт", "росчерк"]
+        },
         "answer_index": []
       },
       {
         "level": 3,
         "condition": null,
         "sentences": [],
-        "variants": [
-          "Milestone - достижение / мильный камень",
-          "Muzzle - заткнуть рот / морда",
-          "Gut - кишечник / внутренний голос",
-          "Weasel - горностай / хитрец"
-        ],
+        "variants": {
+          "Milestone": ["достижение", "мильный камень"],
+          "Muzzle": ["заткнуть рот", "морда"],
+          "Gut": ["кишечник", "внутренний голос"],
+          "Weasel": ["горностай", "хитрец"]
+        },
         "answer_index": []
       }
     ]
