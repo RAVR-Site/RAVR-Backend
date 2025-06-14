@@ -1,5 +1,63 @@
 basePath: /api/v1
 definitions:
+  controller.CompleteLessonResponse:
+    properties:
+      completedTime:
+        description: Время завершения урока
+        type: string
+      earnedXP:
+        description: Заработанный опыт за текущий урок
+        type: integer
+      experience:
+        description: Текущий опыт пользователя
+        type: integer
+      success:
+        type: boolean
+    type: object
+  controller.CompleteRequest:
+    properties:
+      completionTime:
+        type: string
+      earnedExperience:
+        type: integer
+      lessonId:
+        type: string
+      userId:
+        type: integer
+    type: object
+  controller.SwaggerLeaderboardResponse:
+    description: Ответ с таблицей лидеров
+    properties:
+      data:
+        items:
+          properties:
+            experience:
+              example: 1500
+              type: integer
+            first_name:
+              example: John
+              type: string
+            last_name:
+              example: Doe
+              type: string
+            position:
+              example: 1
+              type: integer
+            trend:
+              example: up
+              type: string
+            user_id:
+              example: 1
+              type: integer
+            username:
+              example: johndoe
+              type: string
+          type: object
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
   controller.SwaggerLessonResponse:
     description: Ответ с данными одного урока
     properties:
@@ -40,6 +98,17 @@ definitions:
         example: true
         type: boolean
     type: object
+  controller.SwaggerSuccessResponse:
+    description: Успешный ответ с сообщением для Swagger
+    properties:
+      data:
+        additionalProperties:
+          type: string
+        type: object
+      success:
+        example: true
+        type: boolean
+    type: object
   controller.SwaggerTokenResponse:
     description: Успешный ответ с токеном авторизации
     properties:
@@ -58,9 +127,15 @@ definitions:
     properties:
       data:
         properties:
+          first_name:
+            example: John
+            type: string
           id:
             example: 1
             type: integer
+          last_name:
+            example: Doe
+            type: string
           username:
             example: johndoe
             type: string
@@ -85,6 +160,12 @@ definitions:
   controller.registerRequest:
     description: Запрос на регистрацию нового пользователя
     properties:
+      first_name:
+        example: John
+        type: string
+      last_name:
+        example: Doe
+        type: string
       password:
         example: secret123
         minLength: 6
@@ -100,8 +181,8 @@ definitions:
   controller.saveResultRequest:
     properties:
       lesson_id:
-        example: 1
-        type: integer
+        example: "1"
+        type: string
       time_taken:
         example: 120
         type: integer
@@ -177,6 +258,91 @@ info:
   title: RAVR Backend API
   version: "1.0"
 paths:
+  /api/leaderboard:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список пользователей, отсортированных по опыту, с изменением
+        позиции
+      parameters:
+      - default: 10
+        description: Максимальное количество записей (по умолчанию 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.SwaggerLeaderboardResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Таблица лидеров
+      tags:
+      - leaderboard
+  /api/leaderboard/update:
+    post:
+      consumes:
+      - application/json
+      description: Обновляет рейтинги пользователей за указанный период (weekly, monthly)
+      parameters:
+      - default: weekly
+        description: Период (daily, weekly, monthly)
+        in: query
+        name: period
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.SwaggerSuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Обновление рейтингов
+      tags:
+      - leaderboard
+  /api/v1/lessons/complete:
+    post:
+      consumes:
+      - application/json
+      description: Обновляет статистику пользователя при завершении урока
+      parameters:
+      - description: Данные о прохождении урока
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.CompleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.CompleteLessonResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Завершение урока
+      tags:
+      - lessons
   /auth/login:
     post:
       consumes:

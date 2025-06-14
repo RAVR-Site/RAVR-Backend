@@ -24,6 +24,134 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/leaderboard": {
+            "get": {
+                "description": "Возвращает список пользователей, отсортированных по опыту, с изменением позиции",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "leaderboard"
+                ],
+                "summary": "Таблица лидеров",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Максимальное количество записей (по умолчанию 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.SwaggerLeaderboardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/leaderboard/update": {
+            "post": {
+                "description": "Обновляет рейтинги пользователей за указанный период (weekly, monthly)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "leaderboard"
+                ],
+                "summary": "Обновление рейтингов",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "weekly",
+                        "description": "Период (daily, weekly, monthly)",
+                        "name": "period",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.SwaggerSuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/lessons/complete": {
+            "post": {
+                "description": "Обновляет статистику пользователя при завершении урока",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lessons"
+                ],
+                "summary": "Завершение урока",
+                "parameters": [
+                    {
+                        "description": "Данные о прохождении урока",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.CompleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.CompleteLessonResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Аутентифицирует пользователя и возвращает JWT токен",
@@ -297,6 +425,89 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "controller.CompleteLessonResponse": {
+            "type": "object",
+            "properties": {
+                "completedTime": {
+                    "description": "Время завершения урока",
+                    "type": "string"
+                },
+                "earnedXP": {
+                    "description": "Заработанный опыт за текущий урок",
+                    "type": "integer"
+                },
+                "experience": {
+                    "description": "Текущий опыт пользователя",
+                    "type": "integer"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "controller.CompleteRequest": {
+            "type": "object",
+            "properties": {
+                "completionTime": {
+                    "type": "string"
+                },
+                "earnedExperience": {
+                    "type": "integer"
+                },
+                "lessonId": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "controller.SwaggerLeaderboardResponse": {
+            "description": "Ответ с таблицей лидеров",
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "experience": {
+                                "type": "integer",
+                                "example": 1500
+                            },
+                            "first_name": {
+                                "type": "string",
+                                "example": "John"
+                            },
+                            "last_name": {
+                                "type": "string",
+                                "example": "Doe"
+                            },
+                            "position": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "trend": {
+                                "type": "string",
+                                "example": "up"
+                            },
+                            "user_id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "username": {
+                                "type": "string",
+                                "example": "johndoe"
+                            }
+                        }
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "controller.SwaggerLessonResponse": {
             "description": "Ответ с данными одного урока",
             "type": "object",
@@ -355,6 +566,22 @@ const docTemplate = `{
                 }
             }
         },
+        "controller.SwaggerSuccessResponse": {
+            "description": "Успешный ответ с сообщением для Swagger",
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "controller.SwaggerTokenResponse": {
             "description": "Успешный ответ с токеном авторизации",
             "type": "object",
@@ -381,9 +608,17 @@ const docTemplate = `{
                 "data": {
                     "type": "object",
                     "properties": {
+                        "first_name": {
+                            "type": "string",
+                            "example": "John"
+                        },
                         "id": {
                             "type": "integer",
                             "example": 1
+                        },
+                        "last_name": {
+                            "type": "string",
+                            "example": "Doe"
                         },
                         "username": {
                             "type": "string",
@@ -423,6 +658,14 @@ const docTemplate = `{
                 "username"
             ],
             "properties": {
+                "first_name": {
+                    "type": "string",
+                    "example": "John"
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Doe"
+                },
                 "password": {
                     "type": "string",
                     "minLength": 6,
@@ -439,8 +682,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "lesson_id": {
-                    "type": "integer",
-                    "example": 1
+                    "type": "string",
+                    "example": "1"
                 },
                 "time_taken": {
                     "type": "integer",
