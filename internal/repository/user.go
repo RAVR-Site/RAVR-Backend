@@ -7,17 +7,20 @@ import (
 )
 
 type User struct {
-	ID        uint   `gorm:"primaryKey"`
-	Username  string `gorm:"unique;not null"`
-	Password  string `gorm:"not null"`
-	FirstName string `gorm:"column:first_name"`
-	LastName  string `gorm:"column:last_name"`
+	ID         uint   `gorm:"primaryKey"`
+	Username   string `gorm:"unique;not null"`
+	Password   string `gorm:"not null"`
+	FirstName  string `gorm:"column:first_name"`
+	LastName   string `gorm:"column:last_name"`
+	Experience uint64 `gorm:"column:experience;default:0"` // Опыт пользователя
 }
 
 type UserRepository interface {
 	Create(user *User) error
 	FindByUsername(username string) (*User, error)
 	GetUsersByIds(userIDs []uint) ([]*User, error)
+	GetTopUsersByExperience(limit int) ([]*User, error)
+	UpdateExperience(userID uint, experience uint64) error
 }
 
 type userRepo struct {
@@ -54,4 +57,14 @@ func (r *userRepo) GetUsersByIds(userIDs []uint) ([]*User, error) {
 	// Получаем всех пользователей с указанными ID одним запросом
 	err := r.db.Where("id IN ?", userIDs).Find(&users).Error
 	return users, err
+}
+
+func (r *userRepo) GetTopUsersByExperience(limit int) ([]*User, error) {
+	var users []*User
+	err := r.db.Order("experience desc").Limit(limit).Find(&users).Error
+	return users, err
+}
+
+func (r *userRepo) UpdateExperience(userID uint, experience uint64) error {
+	return r.db.Model(&User{}).Where("id = ?", userID).Update("experience", experience).Error
 }

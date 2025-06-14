@@ -1,0 +1,8 @@
+ALTER TABLE results
+    ALTER COLUMN lesson_id TYPE VARCHAR(255),
+    ADD COLUMN completed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN completion_time VARCHAR(20),
+    ADD COLUMN added_experience BIGINT DEFAULT 0,
+    RENAME COLUMN time_taken TO score,
+    ALTER COLUMN score TYPE BIGINT;
+

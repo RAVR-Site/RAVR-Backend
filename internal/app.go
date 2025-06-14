@@ -119,7 +119,12 @@ func (app *Application) Init() error {
 }
 
 func (app *Application) initRepositories() error {
+	// Регистрируем репозитории
 	if err := app.container.Provide(repository.NewUserRepository); err != nil {
+		return err
+	}
+
+	if err := app.container.Provide(repository.NewLeaderboardRepository); err != nil {
 		return err
 	}
 
@@ -149,8 +154,25 @@ func (app *Application) initServices() error {
 
 	if err := app.container.Provide(func(repo repository.ResultRepository, userRepo repository.UserRepository, userService service.UserService, logger *zap.Logger) service.ResultService {
 		return service.NewResultService(repo, userRepo, userService, logger)
-	},
-	); err != nil {
+	}); err != nil {
+		return err
+	}
+
+	if err := app.container.Provide(func(userRepo repository.UserRepository, leaderboardRepo repository.LeaderboardRepository, logger *zap.Logger) service.LeaderboardService {
+		return service.NewLeaderboardService(userRepo, leaderboardRepo, logger)
+	}); err != nil {
+		return err
+	}
+
+	if err := app.container.Provide(func(
+		userRepo repository.UserRepository,
+		resultRepo repository.ResultRepository,
+		lessonRepo repository.LessonRepository,
+		logger *zap.Logger,
+	) service.LessonCompletionService {
+		return service.NewLessonCompletionService(userRepo, resultRepo, lessonRepo, logger)
+	}); err != nil {
+		return err
 	}
 
 	return nil
@@ -162,6 +184,8 @@ func (app *Application) initControllers() error {
 		userService service.UserService,
 		lessonService service.LessonService,
 		resultService service.ResultService,
+		leaderboardService service.LeaderboardService,
+		lessonCompletionService service.LessonCompletionService,
 		logger *zap.Logger,
 	) {
 		e.GET("/", func(c echo.Context) error {
@@ -185,9 +209,22 @@ func (app *Application) initControllers() error {
 		lessonsGroup.GET("", lessonHandler.GetLessonsByType)
 		lessonsGroup.GET("/:id", lessonHandler.GetLesson)
 
+		// Эндпоинт завершения урока (требует JWT)
+		completionHandler := controller.NewLessonCompletionController(lessonCompletionService, logger)
+		lessonsGroup.POST("/complete", completionHandler.Complete, jwtMiddleware)
+
 		resultsGroup := api.Group("/results", jwtMiddleware)
 		resultHandler := controller.NewResultController(resultService, logger)
 		resultsGroup.POST("/save", resultHandler.Save)
+
+		// Эндпоинты для таблицы лидеров
+		leaderboardGroup := api.Group("/leaderboard")
+		leaderboardHandler := controller.NewLeaderboardController(leaderboardService, logger)
+		leaderboardGroup.GET("", leaderboardHandler.GetLeaderboard)
+
+		// Эндпоинт для обновления рейтингов (доступен только с JWT)
+		leaderboardAdminGroup := api.Group("/admin/leaderboard", jwtMiddleware)
+		leaderboardAdminGroup.POST("/update", leaderboardHandler.UpdateRankings)
 	}); err != nil {
 		return err
 	}

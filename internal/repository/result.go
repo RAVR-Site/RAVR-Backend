@@ -1,6 +1,10 @@
 package repository
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type ResultRepository interface {
 	Create(result *Result) error
@@ -16,12 +20,13 @@ func NewResultRepository(db *gorm.DB) ResultRepository {
 }
 
 type Result struct {
-	ID        uint   `gorm:"primaryKey"`
-	UserID    uint   `gorm:"not null"`
-	LessonID  uint   `gorm:"not null"`
-	TimeTaken uint   `gorm:"not null"`
-	XP        uint   `gorm:"not null"`
-	CreatedAt string `gorm:"not null"`
+	ID              uint      `gorm:"primaryKey"`
+	UserID          uint      `gorm:"column:user_id;not null"`
+	LessonID        string    `gorm:"column:lesson_id;not null"`
+	Score           uint64    `gorm:"column:score;not null"`
+	CompletedAt     time.Time `gorm:"column:completed_at;not null"`
+	CompletionTime  string    `gorm:"column:completion_time"` // Формат MM:SS или HH:MM:SS
+	AddedExperience uint64    `gorm:"column:added_experience"`
 }
 
 func (r *resultRepo) Create(result *Result) error {
