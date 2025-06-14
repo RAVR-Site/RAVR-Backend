@@ -2,6 +2,8 @@ package service
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
@@ -65,8 +67,15 @@ func (s *lessonCompletionService) CompleteLessonAndUpdateExperience(
 
 	user := userList[0]
 
+	// Конвертируем строковый ID урока в uint
+	lessonIDUint, err := strconv.ParseUint(lessonID, 10, 32)
+	if err != nil {
+		s.logger.Error("Error converting lesson ID to uint", zap.Error(err), zap.String("lessonId", lessonID))
+		return nil, fmt.Errorf("invalid lesson ID format: %v", err)
+	}
+
 	// Получаем урок для проверки его существования
-	lesson, err := s.lessonRepo.GetByID(lessonID)
+	lesson, err := s.lessonRepo.GetByID(uint(lessonIDUint))
 	if err != nil {
 		s.logger.Error("Error getting lesson", zap.Error(err), zap.String("lessonId", lessonID))
 		return nil, err

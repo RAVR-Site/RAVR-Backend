@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/Ravr-Site/Ravr-Backend/internal/responses"
 	"github.com/Ravr-Site/Ravr-Backend/internal/service"
@@ -22,8 +23,8 @@ func NewResultController(svc service.ResultService, logger *zap.Logger) *ResultC
 }
 
 type saveResultRequest struct {
-	TimeTaken uint `json:"time_taken"example:"120"`
-	LessonId  uint `json:"lesson_id"  example:"1"`
+	TimeTaken uint   `json:"time_taken" example:"120"`
+	LessonId  string `json:"lesson_id" example:"1"`
 }
 
 // @Description Ответ с данными одного урока
@@ -54,13 +55,21 @@ func (s ResultController) Save(c echo.Context) error {
 
 	username := c.Get("username").(string)
 
+	// Проверяем, что lessonId может быть преобразован в uint (для GetLeaderboard)
+	lessonIdUint, err := strconv.ParseUint(req.LessonId, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, responses.Error("INVALID_REQUEST", "LessonId must be an integer"))
+	}
+
+	// Вызываем Save с строковым lessonId
 	err = s.svc.Save(username, req.LessonId, req.TimeTaken)
 	if err != nil {
 		s.logger.Error("Failed to save result", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, responses.Error("INTERNAL_ERROR", "Failed to save result"))
 	}
 
-	leaderboard, err := s.svc.GetLeaderboard(username, req.LessonId, 10)
+	// Вызываем GetLeaderboard с числовым lessonId
+	leaderboard, err := s.svc.GetLeaderboard(username, uint(lessonIdUint), 10)
 	if err != nil {
 		s.logger.Error("Failed to get leaderboard", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, responses.Error("INTERNAL_ERROR", "Failed to get leaderboard"))

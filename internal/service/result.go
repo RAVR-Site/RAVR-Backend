@@ -1,12 +1,15 @@
 package service
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
 	"go.uber.org/zap"
 )
 
 type ResultService interface {
-	Save(username string, lessonId, timeTaken uint) error
+	Save(username string, lessonId string, timeTaken uint) error
 	GetLeaderboard(username string, lessonId uint, limit uint) (*Leaderboard, error)
 }
 
@@ -38,16 +41,24 @@ func NewResultService(repo repository.ResultRepository, userRepo repository.User
 	}
 }
 
-func (s *resultService) Save(username string, lessonId, timeTaken uint) error {
+func (s *resultService) Save(username string, lessonId string, timeTaken uint) error {
 	user, err := s.userService.GetByUsername(username)
 	if err != nil {
 		s.logger.Error("Failed to get user by username", zap.String("username", username), zap.Error(err))
 		return err
 	}
+
+	// Преобразуем время в строку в формате MM:SS
+	minutes := timeTaken / 60
+	seconds := timeTaken % 60
+	completionTime := fmt.Sprintf("%02d:%02d", minutes, seconds)
+
 	result := &repository.Result{
-		UserID:    user.ID,
-		LessonID:  lessonId,
-		TimeTaken: timeTaken,
+		UserID:         user.ID,
+		LessonID:       lessonId,
+		Score:          uint64(timeTaken), // Используем timeTaken как Score
+		CompletionTime: completionTime,    // Время в формате строки
+		CompletedAt:    time.Now(),        // Текущее время
 	}
 
 	if err = s.repo.Create(result); err != nil {
@@ -55,7 +66,7 @@ func (s *resultService) Save(username string, lessonId, timeTaken uint) error {
 		return err
 	}
 
-	s.logger.Info("Result saved successfully", zap.Uint("user_id", user.ID), zap.Uint("lesson_id", lessonId), zap.Uint("time_taken", timeTaken))
+	s.logger.Info("Result saved successfully", zap.Uint("user_id", user.ID), zap.String("lesson_id", lessonId), zap.Uint("time_taken", timeTaken))
 
 	return nil
 }
@@ -69,8 +80,12 @@ func (s *resultService) GetLeaderboard(username string, lessonId uint, limit uin
 		return nil, err
 	}
 
+	// Конвертируем uint lessonId в string для совместимости с новой структурой Result
+	lessonIdStr := fmt.Sprintf("%d", lessonId)
+
 	// Получаем результаты вокруг пользователя из репозитория
-	results, userPosition, err := s.repo.GetLeaderboardAroundUser(user.ID, lessonId, limit)
+	// Обратите внимание: передаем lessonIdStr вместо lessonId, т.к. тип изменился
+	results, userPosition, err := s.repo.GetLeaderboardAroundUser(user.ID, lessonIdStr, limit)
 	if err != nil {
 		s.logger.Error("Failed to get leaderboard", zap.Error(err))
 		return nil, err
@@ -116,11 +131,17 @@ func (s *resultService) GetLeaderboard(username string, lessonId uint, limit uin
 			continue
 		}
 
+		// Извлекаем время из поля Score
+		timeTaken := uint(result.Score)
+
+		// Используем значение Score как опыт (XP)
+		xp := uint(result.Score)
+
 		leaderboard.Results[i] = Result{
 			Position:  position,
 			Username:  resultUser.Username,
-			TimeTaken: result.TimeTaken,
-			XP:        result.XP,
+			TimeTaken: timeTaken,
+			XP:        xp,
 		}
 	}
 

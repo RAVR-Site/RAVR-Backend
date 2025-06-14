@@ -8,7 +8,7 @@ import (
 
 type ResultRepository interface {
 	Create(result *Result) error
-	GetLeaderboardAroundUser(userID, lessonID, limit uint) ([]Result, int, error)
+	GetLeaderboardAroundUser(userID uint, lessonID string, limit uint) ([]Result, int, error)
 }
 
 type resultRepo struct {
@@ -35,11 +35,11 @@ func (r *resultRepo) Create(result *Result) error {
 
 // GetLeaderboardAroundUser получает результаты вокруг заданного пользователя для определенного урока
 // Возвращает список результатов, позицию пользователя в списке и ошибку, если она возникла
-func (r *resultRepo) GetLeaderboardAroundUser(userID, lessonID, limit uint) ([]Result, int, error) {
+func (r *resultRepo) GetLeaderboardAroundUser(userID uint, lessonID string, limit uint) ([]Result, int, error) {
 	// Сначала найдем позицию пользователя в общем рейтинге для данного урока
 	var userPosition int64
 	subQuery := r.db.Model(&Result{}).
-		Where("lesson_id = ? AND time_taken < (SELECT time_taken FROM results WHERE user_id = ? AND lesson_id = ? LIMIT 1)",
+		Where("lesson_id = ? AND score < (SELECT score FROM results WHERE user_id = ? AND lesson_id = ? LIMIT 1)",
 			lessonID, userID, lessonID).
 		Count(&userPosition)
 
@@ -60,7 +60,7 @@ func (r *resultRepo) GetLeaderboardAroundUser(userID, lessonID, limit uint) ([]R
 	// Получаем результаты
 	err := r.db.Model(&Result{}).
 		Where("lesson_id = ?", lessonID).
-		Order("time_taken ASC").
+		Order("score ASC").
 		Limit(int(limit*2 + 1)). // limit выше + limit ниже + результат пользователя
 		Offset(startPosition - 1).
 		Find(&results).Error
