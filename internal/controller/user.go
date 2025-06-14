@@ -30,16 +30,20 @@ type SwaggerTokenResponse struct {
 type SwaggerUserProfileResponse struct {
 	Success bool `json:"success" example:"true"`
 	Data    struct {
-		ID       uint   `json:"id" example:"1"`
-		Username string `json:"username" example:"johndoe"`
+		ID        uint   `json:"id" example:"1"`
+		Username  string `json:"username" example:"johndoe"`
+		FirstName string `json:"first_name,omitempty" example:"John"`
+		LastName  string `json:"last_name,omitempty" example:"Doe"`
 	} `json:"data"`
 }
 
 // Request structs
 // @Description Запрос на регистрацию нового пользователя
 type registerRequest struct {
-	Username string `json:"username" validate:"required,min=3" example:"johndoe"`
-	Password string `json:"password" validate:"required,min=6" example:"secret123"`
+	Username  string `json:"username" validate:"required,min=3" example:"johndoe"`
+	Password  string `json:"password" validate:"required,min=6" example:"secret123"`
+	FirstName string `json:"first_name" example:"John"`
+	LastName  string `json:"last_name" example:"Doe"`
 }
 
 // @Description Запрос на вход в систему
@@ -76,7 +80,7 @@ func (h *UserController) Register(c echo.Context) error {
 	if err := h.validate.Struct(req); err != nil {
 		return c.JSON(http.StatusBadRequest, responses.Error("VALIDATION_ERROR", err.Error()))
 	}
-	if err := h.svc.Register(req.Username, req.Password); err != nil {
+	if err := h.svc.Register(req.Username, req.Password, req.FirstName, req.LastName); err != nil {
 		return c.JSON(http.StatusBadRequest, responses.Error("REGISTRATION_ERROR", err.Error()))
 	}
 	return c.JSON(http.StatusCreated, responses.MessageResponse("Пользователь успешно зарегистрирован"))
@@ -140,11 +144,15 @@ func (h *UserController) Profile(c echo.Context) error {
 	}
 
 	userResp := struct {
-		ID       uint   `json:"id"`
-		Username string `json:"username"`
+		ID        uint   `json:"id"`
+		Username  string `json:"username"`
+		FirstName string `json:"first_name,omitempty"`
+		LastName  string `json:"last_name,omitempty"`
 	}{
-		ID:       u.ID,
-		Username: u.Username,
+		ID:        u.ID,
+		Username:  u.Username,
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
 	}
 
 	return c.JSON(http.StatusOK, responses.Success(userResp))

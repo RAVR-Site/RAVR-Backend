@@ -11,7 +11,7 @@ import (
 )
 
 type UserService interface {
-	Register(username, password string) error
+	Register(username, password, firstName, lastName string) error
 	Login(username, password string) (string, error)
 	GetByUsername(username string) (*repository.User, error)
 }
@@ -27,7 +27,7 @@ func NewUserService(repo repository.UserRepository, jwtSecret string, jwtAccessE
 	return &service{repo, jwtManager, logger}
 }
 
-func (s *service) Register(username, password string) error {
+func (s *service) Register(username, password, firstName, lastName string) error {
 	existing, _ := s.repo.FindByUsername(username)
 	if existing != nil {
 		return errors.New("username already taken")
@@ -36,7 +36,12 @@ func (s *service) Register(username, password string) error {
 	if err != nil {
 		return err
 	}
-	user := &repository.User{Username: username, Password: string(hash)}
+	user := &repository.User{
+		Username:  username,
+		Password:  string(hash),
+		FirstName: firstName,
+		LastName:  lastName,
+	}
 	return s.repo.Create(user)
 }
 
