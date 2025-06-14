@@ -54,7 +54,7 @@ func NewLeaderboardController(svc service.LeaderboardService, logger *zap.Logger
 // @Param limit query int false "Максимальное количество записей (по умолчанию 10)" default(10)
 // @Success 200 {object} SwaggerLeaderboardResponse
 // @Failure 500 {object} responses.ErrorResponse
-// @Router /api/leaderboard [get]
+// @Router /api/v1/leaderboard [get]
 func (c *LeaderboardController) GetLeaderboard(e echo.Context) error {
 	// Получаем параметр limit из запроса, по умолчанию 10
 	limitStr := e.QueryParam("limit")
@@ -85,7 +85,7 @@ func (c *LeaderboardController) GetLeaderboard(e echo.Context) error {
 // @Param period query string false "Период (daily, weekly, monthly)" default(weekly)
 // @Success 200 {object} SwaggerSuccessResponse
 // @Failure 500 {object} responses.ErrorResponse
-// @Router /api/leaderboard/update [post]
+// @Router /api/v1/admin/leaderboard/update [post]
 func (c *LeaderboardController) UpdateRankings(e echo.Context) error {
 	// Получаем параметр period из запроса, по умолчанию weekly
 	period := e.QueryParam("period")

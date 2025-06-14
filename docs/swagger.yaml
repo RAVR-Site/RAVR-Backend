@@ -258,7 +258,113 @@ info:
   title: RAVR Backend API
   version: "1.0"
 paths:
-  /api/leaderboard:
+  /api/v1/admin/leaderboard/update:
+    post:
+      consumes:
+      - application/json
+      description: Обновляет рейтинги пользователей за указанный период (weekly, monthly)
+      parameters:
+      - default: weekly
+        description: Период (daily, weekly, monthly)
+        in: query
+        name: period
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.SwaggerSuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Обновление рейтингов
+      tags:
+      - leaderboard
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Аутентифицирует пользователя и возвращает JWT токен
+      parameters:
+      - description: Учетные данные
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.SwaggerTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Вход в систему
+      tags:
+      - auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создает нового пользователя с указанными учетными данными
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.SwaggerMessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Регистрация нового пользователя
+      tags:
+      - auth
+  /api/v1/auth/user:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает данные текущего аутентифицированного пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.SwaggerUserProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Профиль пользователя
+      tags:
+      - auth
+  /api/v1/leaderboard:
     get:
       consumes:
       - application/json
@@ -284,16 +390,16 @@ paths:
       summary: Таблица лидеров
       tags:
       - leaderboard
-  /api/leaderboard/update:
-    post:
+  /api/v1/lessons:
+    get:
       consumes:
       - application/json
-      description: Обновляет рейтинги пользователей за указанный период (weekly, monthly)
+      description: Возвращает список уроков определенного типа
       parameters:
-      - default: weekly
-        description: Период (daily, weekly, monthly)
+      - description: Тип урока
         in: query
-        name: period
+        name: type
+        required: true
         type: string
       produces:
       - application/json
@@ -301,14 +407,52 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.SwaggerSuccessResponse'
+            $ref: '#/definitions/controller.SwaggerLessonsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
-      summary: Обновление рейтингов
+      summary: Получение уроков по типу
       tags:
-      - leaderboard
+      - lessons
+  /api/v1/lessons/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает детальную информацию об уроке по его ID, включая полные
+        данные урока
+      parameters:
+      - description: ID урока
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.SwaggerLessonResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Получение детальной информации урока
+      tags:
+      - lessons
   /api/v1/lessons/complete:
     post:
       consumes:
@@ -343,151 +487,7 @@ paths:
       summary: Завершение урока
       tags:
       - lessons
-  /auth/login:
-    post:
-      consumes:
-      - application/json
-      description: Аутентифицирует пользователя и возвращает JWT токен
-      parameters:
-      - description: Учетные данные
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/controller.loginRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/controller.SwaggerTokenResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      summary: Вход в систему
-      tags:
-      - auth
-  /auth/register:
-    post:
-      consumes:
-      - application/json
-      description: Создает нового пользователя с указанными учетными данными
-      parameters:
-      - description: Данные для регистрации
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/controller.registerRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/controller.SwaggerMessageResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      summary: Регистрация нового пользователя
-      tags:
-      - auth
-  /auth/user:
-    get:
-      consumes:
-      - application/json
-      description: Возвращает данные текущего аутентифицированного пользователя
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/controller.SwaggerUserProfileResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Профиль пользователя
-      tags:
-      - auth
-  /lessons:
-    get:
-      consumes:
-      - application/json
-      description: Возвращает список уроков определенного типа
-      parameters:
-      - description: Тип урока
-        in: query
-        name: type
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/controller.SwaggerLessonsResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      summary: Получение уроков по типу
-      tags:
-      - lessons
-  /lessons/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Возвращает детальную информацию об уроке по его ID, включая полные
-        данные урока
-      parameters:
-      - description: ID урока
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/controller.SwaggerLessonResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      summary: Получение детальной информации урока
-      tags:
-      - lessons
-  /results/save:
+  /api/v1/results/save:
     post:
       consumes:
       - application/json

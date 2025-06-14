@@ -44,7 +44,7 @@ type SwaggerResultSaveResponse struct {
 // @Failure      400 {object} responses.ErrorResponse "Invalid request"
 // @Failure      500 {object} responses.ErrorResponse "Internal server error"
 // @Security     BearerAuth
-// @Router       /results/save [post]
+// @Router       /api/v1/results/save [post]
 // Save handles saving the result for a lesson.
 func (s ResultController) Save(c echo.Context) error {
 	var req saveResultRequest

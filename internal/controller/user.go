@@ -71,7 +71,7 @@ func NewUserController(svc service.UserService, logger *zap.Logger) *UserControl
 // @Param request body registerRequest true "Данные для регистрации"
 // @Success 201 {object} SwaggerMessageResponse
 // @Failure 400 {object} responses.ErrorResponse
-// @Router /auth/register [post]
+// @Router /api/v1/auth/register [post]
 func (h *UserController) Register(c echo.Context) error {
 	var req registerRequest
 	if err := c.Bind(&req); err != nil {
@@ -101,7 +101,7 @@ type TokenResponse struct {
 // @Success 200 {object} SwaggerTokenResponse
 // @Failure 400 {object} responses.ErrorResponse
 // @Failure 401 {object} responses.ErrorResponse
-// @Router /auth/login [post]
+// @Router /api/v1/auth/login [post]
 func (h *UserController) Login(c echo.Context) error {
 	var req loginRequest
 	if err := c.Bind(&req); err != nil {
@@ -130,7 +130,7 @@ func (h *UserController) Login(c echo.Context) error {
 // @Success 200 {object} SwaggerUserProfileResponse
 // @Failure 401 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
-// @Router /auth/user [get]
+// @Router /api/v1/auth/user [get]
 func (h *UserController) Profile(c echo.Context) error {
 	// Получаем username из контекста (установлено JWT middleware)
 	username := c.Get("username").(string)
