@@ -21,8 +21,14 @@ type SwaggerLeaderboardResponse struct {
 		LastName   string `json:"last_name,omitempty" example:"Doe"`
 		Position   int    `json:"position" example:"1"`
 		Experience uint64 `json:"experience" example:"1500"`
-		Trend      int    `json:"trend" example:"2"`
+		Trend      string `json:"trend" example:"up"`
 	} `json:"data"`
+}
+
+// @Description Успешный ответ с сообщением для Swagger
+type SwaggerSuccessResponse struct {
+	Success bool              `json:"success" example:"true"`
+	Data    map[string]string `json:"data"`
 }
 
 // LeaderboardController контроллер для работы с таблицей лидеров
@@ -77,7 +83,7 @@ func (c *LeaderboardController) GetLeaderboard(e echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param period query string false "Период (daily, weekly, monthly)" default(weekly)
-// @Success 200 {object} responses.SuccessResponse
+// @Success 200 {object} SwaggerSuccessResponse
 // @Failure 500 {object} responses.ErrorResponse
 // @Router /api/leaderboard/update [post]
 func (c *LeaderboardController) UpdateRankings(e echo.Context) error {

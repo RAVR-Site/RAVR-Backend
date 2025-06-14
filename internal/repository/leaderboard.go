@@ -131,11 +131,8 @@ func (r *leaderboardRepo) CalculateLeaderboard(limit int) ([]*LeaderboardEntry, 
 
 	// Получаем рейтинги предыдущего периода, если они есть
 	now := time.Now()
-	rankings, err := r.GetLatestRankings("weekly", limit*2) // Берем с запасом
-	if err != nil {
-		return nil, err
-	}
 
+	// Получаем предыдущие рейтинги для определения тренда
 	prevRankings, err := r.GetPreviousRankings("weekly", now, limit*2)
 	if err != nil {
 		return nil, err
