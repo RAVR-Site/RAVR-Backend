@@ -152,12 +152,6 @@ func (app *Application) initServices() error {
 		return err
 	}
 
-	if err := app.container.Provide(func(repo repository.ResultRepository, userRepo repository.UserRepository, userService service.UserService, logger *zap.Logger) service.ResultService {
-		return service.NewResultService(repo, userRepo, userService, logger)
-	}); err != nil {
-		return err
-	}
-
 	if err := app.container.Provide(func(userRepo repository.UserRepository, leaderboardRepo repository.LeaderboardRepository, logger *zap.Logger) service.LeaderboardService {
 		return service.NewLeaderboardService(userRepo, leaderboardRepo, logger)
 	}); err != nil {
@@ -183,7 +177,6 @@ func (app *Application) initControllers() error {
 		e *echo.Echo,
 		userService service.UserService,
 		lessonService service.LessonService,
-		resultService service.ResultService,
 		leaderboardService service.LeaderboardService,
 		lessonCompletionService service.LessonCompletionService,
 		logger *zap.Logger,
@@ -213,10 +206,6 @@ func (app *Application) initControllers() error {
 		// Эндпоинт завершения урока (требует JWT)
 		completionHandler := controller.NewLessonCompletionController(lessonCompletionService, logger)
 		lessonsGroup.POST("/complete", completionHandler.Complete, jwtMiddleware)
-
-		resultsGroup := api.Group("/results", jwtMiddleware)
-		resultHandler := controller.NewResultController(resultService, logger)
-		resultsGroup.POST("/save", resultHandler.Save)
 
 		// Эндпоинты для таблицы лидеров
 		leaderboardGroup := api.Group("/leaderboard")
