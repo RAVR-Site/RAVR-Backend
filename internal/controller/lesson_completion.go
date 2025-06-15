@@ -11,7 +11,6 @@ import (
 
 // CompleteRequest представляет запрос на завершение урока
 type CompleteRequest struct {
-	UserID           uint   `json:"userId"`
 	LessonID         string `json:"lessonId"`
 	CompletionTime   string `json:"completionTime"`
 	EarnedExperience uint64 `json:"earnedExperience"`
@@ -58,9 +57,12 @@ func (c *LessonCompletionController) Complete(e echo.Context) error {
 		return e.JSON(http.StatusBadRequest, responses.Error("INVALID_REQUEST", err.Error()))
 	}
 
-	result, err := c.svc.CompleteLessonAndUpdateExperience(req.UserID, req.LessonID, req.CompletionTime, req.EarnedExperience)
+	// Получаем ID пользователя из контекста (установлено JWT middleware)
+	userID := e.Get("user_id").(uint)
+
+	result, err := c.svc.CompleteLessonAndUpdateExperience(userID, req.LessonID, req.CompletionTime, req.EarnedExperience)
 	if err != nil {
-		c.logger.Error("Error completing lesson", zap.Error(err), zap.Uint("userId", req.UserID), zap.String("lessonId", req.LessonID))
+		c.logger.Error("Error completing lesson", zap.Error(err), zap.Uint("userId", userID), zap.String("lessonId", req.LessonID))
 		return e.JSON(http.StatusInternalServerError, responses.Error("COMPLETION_ERROR", err.Error()))
 	}
 

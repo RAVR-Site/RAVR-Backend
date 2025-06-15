@@ -21,6 +21,7 @@ type UserRepository interface {
 	GetUsersByIds(userIDs []uint) ([]*User, error)
 	GetTopUsersByExperience(limit int) ([]*User, error)
 	UpdateExperience(userID uint, experience uint64) error
+	Update(username string, userData map[string]interface{}) error
 }
 
 type userRepo struct {
@@ -67,4 +68,9 @@ func (r *userRepo) GetTopUsersByExperience(limit int) ([]*User, error) {
 
 func (r *userRepo) UpdateExperience(userID uint, experience uint64) error {
 	return r.db.Model(&User{}).Where("id = ?", userID).Update("experience", experience).Error
+}
+
+// Update обновляет данные пользователя по имени пользователя
+func (r *userRepo) Update(username string, userData map[string]interface{}) error {
+	return r.db.Model(&User{}).Where("username = ?", username).Updates(userData).Error
 }

@@ -203,6 +203,7 @@ func (app *Application) initControllers() error {
 		authGroup.POST("/login", userHandler.Login)
 		authGroup.POST("/register", userHandler.Register)
 		authGroup.GET("/user", userHandler.Profile, jwtMiddleware)
+		authGroup.PUT("/user", userHandler.UpdateUser, jwtMiddleware)
 
 		lessonsGroup := api.Group("/lessons")
 		lessonHandler := controller.NewLessonController(lessonService, logger)

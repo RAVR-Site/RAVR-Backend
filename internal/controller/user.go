@@ -37,6 +37,20 @@ type SwaggerUserProfileResponse struct {
 	} `json:"data"`
 }
 
+// @Description Запрос на обновление данных пользователя
+type updateUserRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}
+
+// @Description Ответ с сообщением об успешном обновлении
+type SwaggerUpdateUserResponse struct {
+	Success bool `json:"success" example:"true"`
+	Data    struct {
+		Message string `json:"message" example:"Данные пользователя успешно обновлены"`
+	} `json:"data"`
+}
+
 // Request structs
 // @Description Запрос на регистрацию нового пользователя
 type registerRequest struct {
@@ -156,4 +170,38 @@ func (h *UserController) Profile(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, responses.Success(userResp))
+}
+
+// UpdateUser обновляет данные текущего пользователя
+// @Summary Обновление данных пользователя
+// @Description Обновляет имя и фамилию текущего аутентифицированного пользователя
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body updateUserRequest true "Данные для обновления"
+// @Success 200 {object} SwaggerUpdateUserResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 401 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
+// @Router /api/v1/auth/user [put]
+func (h *UserController) UpdateUser(c echo.Context) error {
+	// Получаем username из контекста (установлено JWT middleware)
+	username := c.Get("username").(string)
+
+	var req updateUserRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, responses.Error("INVALID_REQUEST", err.Error()))
+	}
+
+	// Обновляем данные пользователя
+	err := h.svc.UpdateUser(username, req.FirstName, req.LastName)
+	if err != nil {
+		h.logger.Error("failed to update user",
+			zap.String("username", username),
+			zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, responses.Error("UPDATE_ERROR", err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, responses.MessageResponse("Данные пользователя успешно обновлены"))
 }

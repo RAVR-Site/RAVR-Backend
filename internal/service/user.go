@@ -14,6 +14,7 @@ type UserService interface {
 	Register(username, password, firstName, lastName string) error
 	Login(username, password string) (string, error)
 	GetByUsername(username string) (*repository.User, error)
+	UpdateUser(username string, firstName, lastName string) error
 }
 
 type service struct {
@@ -72,4 +73,40 @@ func (s *service) Login(username, password string) (string, error) {
 
 func (s *service) GetByUsername(username string) (*repository.User, error) {
 	return s.repo.FindByUsername(username)
+}
+
+// UpdateUser обновляет данные пользователя
+func (s *service) UpdateUser(username string, firstName, lastName string) error {
+	// Проверяем, существует ли пользователь
+	user, err := s.repo.FindByUsername(username)
+	if err != nil || user == nil {
+		return errors.New("пользователь не найден")
+	}
+
+	// Подготавливаем данные для обновления
+	userData := map[string]interface{}{}
+
+	if firstName != "" {
+		userData["first_name"] = firstName
+	}
+
+	if lastName != "" {
+		userData["last_name"] = lastName
+	}
+
+	// Если нет данных для обновления, возвращаем nil
+	if len(userData) == 0 {
+		return nil
+	}
+
+	// Обновляем пользователя в репозитории
+	err = s.repo.Update(username, userData)
+	if err != nil {
+		s.logger.Error("failed to update user",
+			zap.String("username", username),
+			zap.Error(err))
+		return errors.New("ошибка при обновлении данных пользователя")
+	}
+
+	return nil
 }
