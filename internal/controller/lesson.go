@@ -42,7 +42,7 @@ type SwaggerLessonResponse struct {
 // @Failure 400 {object} responses.ErrorResponse
 // @Failure 404 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
-// @Router /api/v1/lessons/{id} [get]
+// @Router /lessons/{id} [get]
 func (c *LessonController) GetLesson(e echo.Context) error {
 	idStr := e.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -75,7 +75,7 @@ type SwaggerLessonsResponse struct {
 // @Success 200 {object} SwaggerLessonsResponse
 // @Failure 400 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
-// @Router /api/v1/lessons [get]
+// @Router /lessons [get]
 func (c *LessonController) GetLessonsByType(e echo.Context) error {
 	lessonType := e.QueryParam("type")
 

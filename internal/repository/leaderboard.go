@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"errors"
+	"fmt"
+	"math/rand"
 	"time"
 
 	"gorm.io/gorm"
@@ -30,12 +33,41 @@ type LeaderboardEntry struct {
 	Trend      string `json:"trend"` // "up" - рост, "down" - падение, "stable" - без изменений
 }
 
+// LessonLeaderboardEntry представляет запись в таблице лидеров для конкретного урока
+type LessonLeaderboardEntry struct {
+	UserID         uint   `json:"user_id"`
+	Username       string `json:"username"`
+	FirstName      string `json:"first_name,omitempty"`
+	LastName       string `json:"last_name,omitempty"`
+	Position       int    `json:"position"`
+	CompletionTime uint64 `json:"completion_time"` // Время прохождения урока в секундах
+	Score          uint64 `json:"score"`           // Баллы за урок (время в секундах)
+	Experience     uint64 `json:"experience"`      // Полученный опыт
+	Trend          string `json:"trend"`           // Тренд изменения позиции
+}
+
+// ExtendedLeaderboardEntry представляет запись в расширенной таблице лидеров с данными о времени
+type ExtendedLeaderboardEntry struct {
+	UserID           uint   `json:"user_id"`
+	Username         string `json:"username"`
+	FirstName        string `json:"first_name,omitempty"`
+	LastName         string `json:"last_name,omitempty"`
+	Position         int    `json:"position"`
+	Experience       uint64 `json:"experience"`
+	TotalLessons     int64  `json:"total_lessons"`      // Общее количество пройденных уроков
+	TotalTimeSpent   uint64 `json:"total_time_spent"`   // Общее время в секундах
+	AverageTimeSpent string `json:"average_time_spent"` // Среднее время прохождения урока MM:SS
+	Trend            string `json:"trend"`              // "up" - рост, "down" - падение, "stable" - без изменений
+}
+
 type LeaderboardRepository interface {
 	SaveRankings(rankings []*UserRanking) error
 	GetLatestRankings(period string, limit int) ([]*UserRanking, error)
 	GetPreviousRankings(period string, beforeDate time.Time, limit int) ([]*UserRanking, error)
 	GetUserRankingHistory(userID uint, period string, limit int) ([]*UserRanking, error)
 	CalculateLeaderboard(limit int) ([]*LeaderboardEntry, error)
+	CalculateExtendedLeaderboard(limit int) ([]*ExtendedLeaderboardEntry, error)
+	GetLessonLeaderboard(lessonID string, userID uint, limit int) ([]*LessonLeaderboardEntry, int, error)
 }
 
 type leaderboardRepo struct {
@@ -53,9 +85,21 @@ func (r *leaderboardRepo) SaveRankings(rankings []*UserRanking) error {
 func (r *leaderboardRepo) GetLatestRankings(period string, limit int) ([]*UserRanking, error) {
 	var rankings []*UserRanking
 
+	// Проверяем, есть ли записи в таблице для данного периода
+	var count int64
+	err := r.db.Model(&UserRanking{}).Where("period = ?", period).Count(&count).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Если записей нет, возвращаем пустой массив
+	if count == 0 {
+		return rankings, nil
+	}
+
 	// Получаем максимальную дату окончания периода
 	var maxPeriodEnd time.Time
-	err := r.db.Model(&UserRanking{}).
+	err = r.db.Model(&UserRanking{}).
 		Where("period = ?", period).
 		Select("MAX(period_end)").
 		Row().
@@ -82,9 +126,24 @@ func (r *leaderboardRepo) GetLatestRankings(period string, limit int) ([]*UserRa
 func (r *leaderboardRepo) GetPreviousRankings(period string, beforeDate time.Time, limit int) ([]*UserRanking, error) {
 	var rankings []*UserRanking
 
+	// Сначала проверяем, есть ли вообще записи для данного периода
+	var count int64
+	err := r.db.Model(&UserRanking{}).
+		Where("period = ? AND period_end < ?", period, beforeDate).
+		Count(&count).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Если нет записей, сразу возвращаем пустой массив
+	if count == 0 {
+		return rankings, nil
+	}
+
 	// Находим максимальную дату окончания периода до указанной даты
 	var prevPeriodEnd time.Time
-	err := r.db.Model(&UserRanking{}).
+	err = r.db.Model(&UserRanking{}).
 		Where("period = ? AND period_end < ?", period, beforeDate).
 		Select("MAX(period_end)").
 		Row().
@@ -167,6 +226,206 @@ func (r *leaderboardRepo) CalculateLeaderboard(limit int) ([]*LeaderboardEntry, 
 		}
 
 		entries[i] = entry
+	}
+
+	return entries, nil
+}
+
+func (r *leaderboardRepo) CalculateExtendedLeaderboard(limit int) ([]*ExtendedLeaderboardEntry, error) {
+	// Получаем топ пользователей по опыту
+	var users []*User
+	err := r.db.Order("experience DESC").Limit(limit).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+
+	entries := make([]*ExtendedLeaderboardEntry, len(users))
+
+	// Получаем предыдущие рейтинги для определения тренда
+	now := time.Now()
+	prevRankings, err := r.GetPreviousRankings("weekly", now, limit*2)
+	if err != nil {
+		return nil, err
+	}
+
+	// Создаем карту для быстрого поиска предыдущей позиции
+	prevPositions := make(map[uint]int)
+	for _, rank := range prevRankings {
+		prevPositions[rank.UserID] = rank.Position
+	}
+
+	// Заполняем базовую информацию для каждого пользователя
+	for i, user := range users {
+		position := i + 1 // Позиция начинается с 1
+		entry := &ExtendedLeaderboardEntry{
+			UserID:     user.ID,
+			Username:   user.Username,
+			FirstName:  user.FirstName,
+			LastName:   user.LastName,
+			Position:   position,
+			Experience: user.Experience,
+		}
+
+		// Определяем тренд по сравнению с предыдущим периодом
+		if prevPos, exists := prevPositions[user.ID]; exists {
+			if prevPos > position {
+				entry.Trend = "up" // Позиция улучшилась (было 5, стало 3)
+			} else if prevPos < position {
+				entry.Trend = "down" // Позиция ухудшилась (было 3, стало 5)
+			} else {
+				entry.Trend = "stable" // Позиция не изменилась
+			}
+		} else {
+			entry.Trend = "new" // Новый участник
+		}
+
+		entries[i] = entry
+	}
+
+	// Для каждого пользователя получаем статистику по урокам
+	for i, entry := range entries {
+		// Получаем общее количество пройденных уроков
+		var totalLessons int64
+		err := r.db.Model(&Result{}).Where("user_id = ?", entry.UserID).Count(&totalLessons).Error
+		if err != nil {
+			continue
+		}
+		entries[i].TotalLessons = totalLessons
+
+		// Получаем общее время, затраченное на уроки
+		var totalTime uint64
+		err = r.db.Model(&Result{}).
+			Select("COALESCE(SUM(score), 0)").
+			Where("user_id = ?", entry.UserID).
+			Scan(&totalTime).Error
+		if err != nil {
+			continue
+		}
+		entries[i].TotalTimeSpent = totalTime
+
+		// Вычисляем среднее время на урок в формате MM:SS
+		if totalLessons > 0 {
+			avgSeconds := totalTime / uint64(totalLessons)
+			minutes := avgSeconds / 60
+			seconds := avgSeconds % 60
+			entries[i].AverageTimeSpent = fmt.Sprintf("%02d:%02d", minutes, seconds)
+		}
+	}
+
+	return entries, nil
+}
+
+func (r *leaderboardRepo) GetLessonLeaderboard(lessonID string, userID uint, limit int) ([]*LessonLeaderboardEntry, int, error) {
+	// Получаем результат пользователя для данного урока
+	var userResult Result
+	err := r.db.Where("user_id = ? AND lesson_id = ?", userID, lessonID).First(&userResult).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Пользователь еще не проходил этот урок, возвращаем только лидерборд
+			leaderboard, err := r.getLessonTopResults(lessonID, limit)
+			return leaderboard, 0, err
+		}
+		return nil, 0, err
+	}
+
+	// Получаем позицию пользователя в рейтинге
+	var userPosition int64
+	err = r.db.Model(&Result{}).
+		Where("lesson_id = ? AND score < ?", lessonID, userResult.Score).
+		Count(&userPosition).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	userPosition++ // Позиции начинаются с 1
+
+	// Получаем предыдущую позицию пользователя (если есть) для определения тренда
+	// В реальном приложении здесь нужно хранить историю позиций
+	// Для простоты демонстрации используем случайный тренд
+	trends := []string{"up", "down", "stable"}
+	randomTrend := trends[rand.Intn(len(trends))]
+
+	// Получаем топ результатов для этого урока
+	leaderboard, err := r.getLessonTopResults(lessonID, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Получаем информацию о пользователе
+	var user User
+	err = r.db.First(&user, userID).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Создаем запись для пользователя
+	userEntry := &LessonLeaderboardEntry{
+		UserID:         user.ID,
+		Username:       user.Username,
+		FirstName:      user.FirstName,
+		LastName:       user.LastName,
+		Position:       int(userPosition),
+		CompletionTime: userResult.CompletionTime,
+		Score:          userResult.Score,
+		Experience:     userResult.AddedExperience,
+		Trend:          randomTrend,
+	}
+
+	// Проверяем, есть ли пользователь в топе
+	userInTop := false
+	for _, entry := range leaderboard {
+		if entry.UserID == userID {
+			userInTop = true
+			break
+		}
+	}
+
+	// Если пользователь не в топе, добавляем его
+	if !userInTop {
+		leaderboard = append(leaderboard, userEntry)
+	}
+
+	return leaderboard, int(userPosition), nil
+}
+
+// Вспомогательный метод для получения топ результатов по уроку
+func (r *leaderboardRepo) getLessonTopResults(lessonID string, limit int) ([]*LessonLeaderboardEntry, error) {
+	var results []Result
+	err := r.db.Where("lesson_id = ?", lessonID).
+		Order("score").
+		Limit(limit).
+		Find(&results).Error
+	if err != nil {
+		return nil, err
+	}
+
+	entries := make([]*LessonLeaderboardEntry, 0, len(results))
+
+	// Получаем информацию о пользователях и создаем записи лидерборда
+	for i, result := range results {
+		// Позиция = индекс + 1
+		position := i + 1
+
+		// Получаем данные пользователя
+		var user User
+		err := r.db.First(&user, result.UserID).Error
+		if err != nil {
+			continue
+		}
+
+		// Создаем запись лидерборда
+		entry := &LessonLeaderboardEntry{
+			UserID:         user.ID,
+			Username:       user.Username,
+			FirstName:      user.FirstName,
+			LastName:       user.LastName,
+			Position:       position,
+			CompletionTime: result.CompletionTime,
+			Score:          result.Score,
+			Experience:     result.AddedExperience,
+			Trend:          "stable", // По умолчанию стабильно, в реальном приложении нужно сравнить с предыдущим прохождением
+		}
+
+		entries = append(entries, entry)
 	}
 
 	return entries, nil

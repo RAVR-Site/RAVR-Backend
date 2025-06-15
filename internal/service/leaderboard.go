@@ -10,6 +10,8 @@ import (
 // LeaderboardService интерфейс для работы с рейтингом пользователей
 type LeaderboardService interface {
 	GetLeaderboard(limit int) ([]*repository.LeaderboardEntry, error)
+	GetExtendedLeaderboard(limit int) ([]*repository.ExtendedLeaderboardEntry, error)
+	GetLessonLeaderboard(lessonID string, userID uint, limit int) ([]*repository.LessonLeaderboardEntry, int, error)
 	UpdateUserRankings(period string) error
 }
 
@@ -40,6 +42,29 @@ func (s *leaderboardService) GetLeaderboard(limit int) ([]*repository.Leaderboar
 		return nil, err
 	}
 	return entries, nil
+}
+
+// GetExtendedLeaderboard возвращает расширенную таблицу лидеров с информацией о времени
+func (s *leaderboardService) GetExtendedLeaderboard(limit int) ([]*repository.ExtendedLeaderboardEntry, error) {
+	entries, err := s.leaderboardRepo.CalculateExtendedLeaderboard(limit)
+	if err != nil {
+		s.logger.Error("Failed to calculate extended leaderboard", zap.Error(err))
+		return nil, err
+	}
+	return entries, nil
+}
+
+// GetLessonLeaderboard возвращает таблицу лидеров для конкретного урока и позицию пользователя в ней
+func (s *leaderboardService) GetLessonLeaderboard(lessonID string, userID uint, limit int) ([]*repository.LessonLeaderboardEntry, int, error) {
+	entries, userPosition, err := s.leaderboardRepo.GetLessonLeaderboard(lessonID, userID, limit)
+	if err != nil {
+		s.logger.Error("Failed to get lesson leaderboard",
+			zap.Error(err),
+			zap.String("lessonID", lessonID),
+			zap.Uint("userID", userID))
+		return nil, 0, err
+	}
+	return entries, userPosition, nil
 }
 
 // UpdateUserRankings обновляет рейтинги пользователей за указанный период (weekly, monthly)

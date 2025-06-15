@@ -111,10 +111,8 @@ func createFakeResults(resultRepo repository.ResultRepository, users []*reposito
 			// Случайный опыт
 			experience := uint64(rand.Intn(EXPERIENCE_MAX-EXPERIENCE_MIN+1) + EXPERIENCE_MIN)
 
-			// Рассчитываем время завершения в формате MM:SS
-			minutes := score / 60
-			seconds := score % 60
-			completionTime := fmt.Sprintf("%02d:%02d", minutes, seconds)
+			// Используем время в секундах напрямую
+			completionTime := uint64(score)
 
 			// Случайная дата завершения в пределах последних 30 дней
 			daysAgo := rand.Intn(30)

@@ -3,27 +3,83 @@ definitions:
   controller.CompleteLessonResponse:
     properties:
       completedTime:
-        description: Время завершения урока
-        type: string
+        description: Время завершения урока в секундах
+        type: integer
       earnedXP:
         description: Заработанный опыт за текущий урок
         type: integer
       experience:
         description: Текущий опыт пользователя
         type: integer
+      leaderboard:
+        description: Лидерборд по уроку
+        properties:
+          entries:
+            description: Записи лидерборда
+            items:
+              $ref: '#/definitions/repository.LessonLeaderboardEntry'
+            type: array
+          totalUsers:
+            description: Общее количество пользователей
+            type: integer
+          userPosition:
+            description: Позиция пользователя
+            type: integer
+        type: object
       success:
         type: boolean
     type: object
   controller.CompleteRequest:
     properties:
       completionTime:
-        type: string
+        description: Время в секундах
+        type: integer
       earnedExperience:
         type: integer
       lessonId:
         type: string
-      userId:
-        type: integer
+    type: object
+  controller.SwaggerExtendedLeaderboardResponse:
+    description: Ответ с расширенной таблицей лидеров
+    properties:
+      data:
+        items:
+          properties:
+            average_time_spent:
+              example: "03:56"
+              type: string
+            experience:
+              example: 1500
+              type: integer
+            first_name:
+              example: John
+              type: string
+            last_name:
+              example: Doe
+              type: string
+            position:
+              example: 1
+              type: integer
+            total_lessons:
+              example: 15
+              type: integer
+            total_time_spent:
+              example: 3540
+              type: integer
+            trend:
+              example: up
+              type: string
+            user_id:
+              example: 1
+              type: integer
+            username:
+              example: johndoe
+              type: string
+          type: object
+        type: array
+      success:
+        example: true
+        type: boolean
     type: object
   controller.SwaggerLeaderboardResponse:
     description: Ответ с таблицей лидеров
@@ -54,6 +110,55 @@ definitions:
               type: string
           type: object
         type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  controller.SwaggerLessonLeaderboardResponse:
+    description: Ответ с таблицей лидеров конкретного урока
+    properties:
+      data:
+        properties:
+          entries:
+            items:
+              properties:
+                completion_time:
+                  description: Время прохождения урока в секундах
+                  example: 85
+                  type: integer
+                experience:
+                  example: 120
+                  type: integer
+                first_name:
+                  example: John
+                  type: string
+                last_name:
+                  example: Doe
+                  type: string
+                position:
+                  example: 1
+                  type: integer
+                score:
+                  example: 85
+                  type: integer
+                trend:
+                  example: up
+                  type: string
+                user_id:
+                  example: 1
+                  type: integer
+                username:
+                  example: johndoe
+                  type: string
+              type: object
+            type: array
+          total_users:
+            example: 50
+            type: integer
+          user_position:
+            example: 3
+            type: integer
+        type: object
       success:
         example: true
         type: boolean
@@ -89,15 +194,6 @@ definitions:
         example: true
         type: boolean
     type: object
-  controller.SwaggerResultSaveResponse:
-    description: Ответ с данными одного урока
-    properties:
-      data:
-        $ref: '#/definitions/service.Leaderboard'
-      success:
-        example: true
-        type: boolean
-    type: object
   controller.SwaggerSuccessResponse:
     description: Успешный ответ с сообщением для Swagger
     properties:
@@ -122,11 +218,27 @@ definitions:
         example: true
         type: boolean
     type: object
-  controller.SwaggerUserProfileResponse:
-    description: Ответ с данными профиля пользователя
+  controller.SwaggerUpdateUserResponse:
+    description: Ответ с сообщением об успешном обновлении
     properties:
       data:
         properties:
+          message:
+            example: Данные пользователя успешно обновлены
+            type: string
+        type: object
+      success:
+        example: true
+        type: boolean
+    type: object
+  controller.SwaggerUserProfileWithStatsResponse:
+    description: Расширенный ответ с данными профиля пользователя и статистикой
+    properties:
+      data:
+        properties:
+          experience:
+            example: 1250
+            type: integer
           first_name:
             example: John
             type: string
@@ -136,6 +248,27 @@ definitions:
           last_name:
             example: Doe
             type: string
+          stats:
+            properties:
+              average_completion:
+                example: 120.5
+                type: number
+              average_experience:
+                example: 83.33
+                type: number
+              fastest_completion:
+                example: 85
+                type: integer
+              max_experience:
+                example: 150
+                type: integer
+              total_experience:
+                example: 1250
+                type: integer
+              total_lessons:
+                example: 15
+                type: integer
+            type: object
           username:
             example: johndoe
             type: string
@@ -178,14 +311,38 @@ definitions:
     - password
     - username
     type: object
-  controller.saveResultRequest:
+  controller.updateUserRequest:
+    description: Запрос на обновление данных пользователя
     properties:
-      lesson_id:
-        example: "1"
+      first_name:
         type: string
-      time_taken:
-        example: 120
+      last_name:
+        type: string
+    type: object
+  repository.LessonLeaderboardEntry:
+    properties:
+      completion_time:
+        description: Время прохождения урока в секундах
         type: integer
+      experience:
+        description: Полученный опыт
+        type: integer
+      first_name:
+        type: string
+      last_name:
+        type: string
+      position:
+        type: integer
+      score:
+        description: Баллы за урок (время в секундах)
+        type: integer
+      trend:
+        description: Тренд изменения позиции
+        type: string
+      user_id:
+        type: integer
+      username:
+        type: string
     type: object
   responses.ErrorInfo:
     properties:
@@ -200,15 +357,6 @@ definitions:
         $ref: '#/definitions/responses.ErrorInfo'
       success:
         type: boolean
-    type: object
-  service.Leaderboard:
-    properties:
-      results:
-        items:
-          $ref: '#/definitions/service.Result'
-        type: array
-      userPosition:
-        type: integer
     type: object
   service.Lesson:
     properties:
@@ -231,17 +379,6 @@ definitions:
       hardId:
         type: integer
       level:
-        type: integer
-    type: object
-  service.Result:
-    properties:
-      position:
-        type: integer
-      timeTaken:
-        type: integer
-      username:
-        type: string
-      xp:
         type: integer
     type: object
 host: localhost:8080
@@ -283,7 +420,7 @@ paths:
       summary: Обновление рейтингов
       tags:
       - leaderboard
-  /api/v1/auth/login:
+  /auth/login:
     post:
       consumes:
       - application/json
@@ -313,7 +450,7 @@ paths:
       summary: Вход в систему
       tags:
       - auth
-  /api/v1/auth/register:
+  /auth/register:
     post:
       consumes:
       - application/json
@@ -339,18 +476,19 @@ paths:
       summary: Регистрация нового пользователя
       tags:
       - auth
-  /api/v1/auth/user:
+  /auth/user:
     get:
       consumes:
       - application/json
-      description: Возвращает данные текущего аутентифицированного пользователя
+      description: Возвращает данные текущего аутентифицированного пользователя с
+        статистикой
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.SwaggerUserProfileResponse'
+            $ref: '#/definitions/controller.SwaggerUserProfileWithStatsResponse'
         "401":
           description: Unauthorized
           schema:
@@ -364,7 +502,42 @@ paths:
       summary: Профиль пользователя
       tags:
       - auth
-  /api/v1/leaderboard:
+    put:
+      consumes:
+      - application/json
+      description: Обновляет имя и фамилию текущего аутентифицированного пользователя
+      parameters:
+      - description: Данные для обновления
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.updateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.SwaggerUpdateUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновление данных пользователя
+      tags:
+      - auth
+  /leaderboard:
     get:
       consumes:
       - application/json
@@ -390,7 +563,73 @@ paths:
       summary: Таблица лидеров
       tags:
       - leaderboard
-  /api/v1/lessons:
+  /leaderboard/extended:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает расширенную таблицу лидеров с информацией о времени,
+        затраченном на уроки
+      parameters:
+      - default: 10
+        description: Максимальное количество записей (по умолчанию 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.SwaggerExtendedLeaderboardResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Расширенная таблица лидеров
+      tags:
+      - leaderboard
+  /leaderboard/lesson/{lesson_id}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает таблицу лидеров для конкретного урока и позицию пользователя
+      parameters:
+      - description: ID урока
+        in: path
+        name: lesson_id
+        required: true
+        type: string
+      - default: 10
+        description: Максимальное количество записей (по умолчанию 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.SwaggerLessonLeaderboardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Таблица лидеров урока
+      tags:
+      - leaderboard
+  /lessons:
     get:
       consumes:
       - application/json
@@ -419,7 +658,7 @@ paths:
       summary: Получение уроков по типу
       tags:
       - lessons
-  /api/v1/lessons/{id}:
+  /lessons/{id}:
     get:
       consumes:
       - application/json
@@ -453,11 +692,12 @@ paths:
       summary: Получение детальной информации урока
       tags:
       - lessons
-  /api/v1/lessons/complete:
+  /lessons/complete:
     post:
       consumes:
       - application/json
-      description: Обновляет статистику пользователя при завершении урока
+      description: Обновляет статистику пользователя при завершении урока и возвращает
+        лидерборд по уроку
       parameters:
       - description: Данные о прохождении урока
         in: body
@@ -484,41 +724,11 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Завершение урока
       tags:
       - lessons
-  /api/v1/results/save:
-    post:
-      consumes:
-      - application/json
-      description: Save result for a lesson
-      parameters:
-      - description: Save result request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/controller.saveResultRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Success
-          schema:
-            $ref: '#/definitions/controller.SwaggerResultSaveResponse'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Save result
-      tags:
-      - Results
 securityDefinitions:
   BearerAuth:
     description: 'JWT Authorization header using the Bearer scheme. Example: "Authorization:

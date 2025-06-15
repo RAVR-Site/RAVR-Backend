@@ -14,14 +14,14 @@ import (
 type LessonCompletionResult struct {
 	UserID           uint
 	LessonID         string
-	CompletionTime   string
+	CompletionTime   uint64 // Время в секундах
 	EarnedExperience uint64
 	TotalExperience  uint64
 }
 
 // LessonCompletionService интерфейс для работы с завершением уроков
 type LessonCompletionService interface {
-	CompleteLessonAndUpdateExperience(userID uint, lessonID string, completionTime string, earnedExperience uint64) (*LessonCompletionResult, error)
+	CompleteLessonAndUpdateExperience(userID uint, lessonID string, completionTime uint64, earnedExperience uint64) (*LessonCompletionResult, error)
 }
 
 type lessonCompletionService struct {
@@ -51,7 +51,7 @@ func NewLessonCompletionService(
 func (s *lessonCompletionService) CompleteLessonAndUpdateExperience(
 	userID uint,
 	lessonID string,
-	completionTime string,
+	completionTime uint64,
 	earnedExperience uint64,
 ) (*LessonCompletionResult, error) {
 	// Получаем пользователя
@@ -100,8 +100,9 @@ func (s *lessonCompletionService) CompleteLessonAndUpdateExperience(
 		LessonID:        lessonID,
 		Score:           earnedExperience, // Используем заработанный опыт как счет
 		CompletedAt:     now,
-		CompletionTime:  completionTime,
+		CompletionTime:  completionTime, // Сохраняем время завершения в секундах
 		AddedExperience: earnedExperience,
+		XP:              earnedExperience, // Заполняем устаревшее поле для обратной совместимости
 	}
 
 	err = s.resultRepo.Create(result)
@@ -122,7 +123,7 @@ func (s *lessonCompletionService) CompleteLessonAndUpdateExperience(
 	s.logger.Info("Lesson completed successfully",
 		zap.Uint("userId", userID),
 		zap.String("lessonId", lessonID),
-		zap.String("completionTime", completionTime),
+		zap.Uint64("completionTime", completionTime),
 		zap.Uint64("earnedExperience", earnedExperience),
 		zap.Uint64("totalExperience", newExperience))
 

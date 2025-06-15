@@ -8,11 +8,11 @@ import (
 
 // UserStats содержит статистику пользователя
 type UserStats struct {
-	TotalLessons      int     // Общее количество пройденных уроков
+	TotalLessons      int64   // Общее количество пройденных уроков
 	TotalExperience   uint64  // Общий полученный опыт
 	AverageExperience float64 // Средний опыт за урок
 	MaxExperience     uint64  // Максимальный опыт за урок
-	FastestCompletion string  // Самое быстрое время завершения (формат MM:SS)
+	FastestCompletion uint64  // Самое быстрое время завершения (в секундах)
 	AverageCompletion float64 // Среднее время завершения (в секундах)
 }
 
@@ -36,8 +36,9 @@ type Result struct {
 	LessonID        string    `gorm:"column:lesson_id;not null"`
 	Score           uint64    `gorm:"column:score;not null"`
 	CompletedAt     time.Time `gorm:"column:completed_at;not null"`
-	CompletionTime  string    `gorm:"column:completion_time"` // Формат MM:SS или HH:MM:SS
+	CompletionTime  uint64    `gorm:"column:completion_time"` // Время в секундах
 	AddedExperience uint64    `gorm:"column:added_experience"`
+	XP              uint64    `gorm:"column:xp"` // Устаревшее поле, используется для обратной совместимости
 }
 
 func (r *resultRepo) Create(result *Result) error {

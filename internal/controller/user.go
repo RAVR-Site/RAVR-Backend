@@ -46,11 +46,11 @@ type SwaggerUserProfileWithStatsResponse struct {
 		FirstName string `json:"first_name,omitempty" example:"John"`
 		LastName  string `json:"last_name,omitempty" example:"Doe"`
 		Stats     struct {
-			TotalLessons      int     `json:"total_lessons" example:"15"`
+			TotalLessons      int64   `json:"total_lessons" example:"15"`
 			TotalExperience   uint64  `json:"total_experience" example:"1250"`
 			AverageExperience float64 `json:"average_experience" example:"83.33"`
 			MaxExperience     uint64  `json:"max_experience" example:"150"`
-			FastestCompletion string  `json:"fastest_completion" example:"01:25"`
+			FastestCompletion uint64  `json:"fastest_completion" example:"85"`
 			AverageCompletion float64 `json:"average_completion" example:"120.5"`
 		} `json:"stats"`
 		Experience uint64 `json:"experience" example:"1250"`
@@ -105,7 +105,7 @@ func NewUserController(svc service.UserService, logger *zap.Logger) *UserControl
 // @Param request body registerRequest true "Данные для регистрации"
 // @Success 201 {object} SwaggerMessageResponse
 // @Failure 400 {object} responses.ErrorResponse
-// @Router /api/v1/auth/register [post]
+// @Router /auth/register [post]
 func (h *UserController) Register(c echo.Context) error {
 	var req registerRequest
 	if err := c.Bind(&req); err != nil {
@@ -135,7 +135,7 @@ type TokenResponse struct {
 // @Success 200 {object} SwaggerTokenResponse
 // @Failure 400 {object} responses.ErrorResponse
 // @Failure 401 {object} responses.ErrorResponse
-// @Router /api/v1/auth/login [post]
+// @Router /auth/login [post]
 func (h *UserController) Login(c echo.Context) error {
 	var req loginRequest
 	if err := c.Bind(&req); err != nil {
@@ -164,7 +164,7 @@ func (h *UserController) Login(c echo.Context) error {
 // @Success 200 {object} SwaggerUserProfileWithStatsResponse
 // @Failure 401 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
-// @Router /api/v1/auth/user [get]
+// @Router /auth/user [get]
 func (h *UserController) Profile(c echo.Context) error {
 	// Получаем username из контекста (установлено JWT middleware)
 	username := c.Get("username").(string)
@@ -185,11 +185,11 @@ func (h *UserController) Profile(c echo.Context) error {
 		FirstName string `json:"first_name,omitempty"`
 		LastName  string `json:"last_name,omitempty"`
 		Stats     struct {
-			TotalLessons      int     `json:"total_lessons"`
+			TotalLessons      int64   `json:"total_lessons"`
 			TotalExperience   uint64  `json:"total_experience"`
 			AverageExperience float64 `json:"average_experience"`
 			MaxExperience     uint64  `json:"max_experience"`
-			FastestCompletion string  `json:"fastest_completion"`
+			FastestCompletion uint64  `json:"fastest_completion"`
 			AverageCompletion float64 `json:"average_completion"`
 		} `json:"stats"`
 		Experience uint64 `json:"experience"`
@@ -224,7 +224,7 @@ func (h *UserController) Profile(c echo.Context) error {
 // @Failure 400 {object} responses.ErrorResponse
 // @Failure 401 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
-// @Router /api/v1/auth/user [put]
+// @Router /auth/user [put]
 func (h *UserController) UpdateUser(c echo.Context) error {
 	// Получаем username из контекста (установлено JWT middleware)
 	username := c.Get("username").(string)

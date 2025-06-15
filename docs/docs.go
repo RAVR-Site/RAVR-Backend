@@ -62,7 +62,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/auth/login": {
+        "/auth/login": {
             "post": {
                 "description": "Аутентифицирует пользователя и возвращает JWT токен",
                 "consumes": [
@@ -108,7 +108,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/auth/register": {
+        "/auth/register": {
             "post": {
                 "description": "Создает нового пользователя с указанными учетными данными",
                 "consumes": [
@@ -148,14 +148,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/auth/user": {
+        "/auth/user": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает данные текущего аутентифицированного пользователя",
+                "description": "Возвращает данные текущего аутентифицированного пользователя с статистикой",
                 "consumes": [
                     "application/json"
                 ],
@@ -170,7 +170,62 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.SwaggerUserProfileResponse"
+                            "$ref": "#/definitions/controller.SwaggerUserProfileWithStatsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновляет имя и фамилию текущего аутентифицированного пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Обновление данных пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные для обновления",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.updateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.SwaggerUpdateUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
                         }
                     },
                     "401": {
@@ -188,7 +243,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/leaderboard": {
+        "/leaderboard": {
             "get": {
                 "description": "Возвращает список пользователей, отсортированных по опыту, с изменением позиции",
                 "consumes": [
@@ -226,7 +281,107 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/lessons": {
+        "/leaderboard/extended": {
+            "get": {
+                "description": "Возвращает расширенную таблицу лидеров с информацией о времени, затраченном на уроки",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "leaderboard"
+                ],
+                "summary": "Расширенная таблица лидеров",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Максимальное количество записей (по умолчанию 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.SwaggerExtendedLeaderboardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/leaderboard/lesson/{lesson_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает таблицу лидеров для конкретного урока и позицию пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "leaderboard"
+                ],
+                "summary": "Таблица лидеров урока",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID урока",
+                        "name": "lesson_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Максимальное количество записей (по умолчанию 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.SwaggerLessonLeaderboardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/lessons": {
             "get": {
                 "description": "Возвращает список уроков определенного типа",
                 "consumes": [
@@ -270,9 +425,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/lessons/complete": {
+        "/lessons/complete": {
             "post": {
-                "description": "Обновляет статистику пользователя при завершении урока",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновляет статистику пользователя при завершении урока и возвращает лидерборд по уроку",
                 "consumes": [
                     "application/json"
                 ],
@@ -322,7 +482,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/lessons/{id}": {
+        "/lessons/{id}": {
             "get": {
                 "description": "Возвращает детальную информацию об уроке по его ID, включая полные данные урока",
                 "consumes": [
@@ -371,57 +531,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/api/v1/results/save": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Save result for a lesson",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Results"
-                ],
-                "summary": "Save result",
-                "parameters": [
-                    {
-                        "description": "Save result request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controller.saveResultRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/controller.SwaggerResultSaveResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -429,8 +538,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "completedTime": {
-                    "description": "Время завершения урока",
-                    "type": "string"
+                    "description": "Время завершения урока в секундах",
+                    "type": "integer"
                 },
                 "earnedXP": {
                     "description": "Заработанный опыт за текущий урок",
@@ -439,6 +548,27 @@ const docTemplate = `{
                 "experience": {
                     "description": "Текущий опыт пользователя",
                     "type": "integer"
+                },
+                "leaderboard": {
+                    "description": "Лидерборд по уроку",
+                    "type": "object",
+                    "properties": {
+                        "entries": {
+                            "description": "Записи лидерборда",
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/repository.LessonLeaderboardEntry"
+                            }
+                        },
+                        "totalUsers": {
+                            "description": "Общее количество пользователей",
+                            "type": "integer"
+                        },
+                        "userPosition": {
+                            "description": "Позиция пользователя",
+                            "type": "integer"
+                        }
+                    }
                 },
                 "success": {
                     "type": "boolean"
@@ -449,16 +579,72 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "completionTime": {
-                    "type": "string"
+                    "description": "Время в секундах",
+                    "type": "integer"
                 },
                 "earnedExperience": {
                     "type": "integer"
                 },
                 "lessonId": {
                     "type": "string"
+                }
+            }
+        },
+        "controller.SwaggerExtendedLeaderboardResponse": {
+            "description": "Ответ с расширенной таблицей лидеров",
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "average_time_spent": {
+                                "type": "string",
+                                "example": "03:56"
+                            },
+                            "experience": {
+                                "type": "integer",
+                                "example": 1500
+                            },
+                            "first_name": {
+                                "type": "string",
+                                "example": "John"
+                            },
+                            "last_name": {
+                                "type": "string",
+                                "example": "Doe"
+                            },
+                            "position": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "total_lessons": {
+                                "type": "integer",
+                                "example": 15
+                            },
+                            "total_time_spent": {
+                                "type": "integer",
+                                "example": 3540
+                            },
+                            "trend": {
+                                "type": "string",
+                                "example": "up"
+                            },
+                            "user_id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "username": {
+                                "type": "string",
+                                "example": "johndoe"
+                            }
+                        }
+                    }
                 },
-                "userId": {
-                    "type": "integer"
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -499,6 +685,74 @@ const docTemplate = `{
                                 "type": "string",
                                 "example": "johndoe"
                             }
+                        }
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "controller.SwaggerLessonLeaderboardResponse": {
+            "description": "Ответ с таблицей лидеров конкретного урока",
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "entries": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "completion_time": {
+                                        "description": "Время прохождения урока в секундах",
+                                        "type": "integer",
+                                        "example": 85
+                                    },
+                                    "experience": {
+                                        "type": "integer",
+                                        "example": 120
+                                    },
+                                    "first_name": {
+                                        "type": "string",
+                                        "example": "John"
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "example": "Doe"
+                                    },
+                                    "position": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "score": {
+                                        "type": "integer",
+                                        "example": 85
+                                    },
+                                    "trend": {
+                                        "type": "string",
+                                        "example": "up"
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "username": {
+                                        "type": "string",
+                                        "example": "johndoe"
+                                    }
+                                }
+                            }
+                        },
+                        "total_users": {
+                            "type": "integer",
+                            "example": 50
+                        },
+                        "user_position": {
+                            "type": "integer",
+                            "example": 3
                         }
                     }
                 },
@@ -553,19 +807,6 @@ const docTemplate = `{
                 }
             }
         },
-        "controller.SwaggerResultSaveResponse": {
-            "description": "Ответ с данными одного урока",
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/service.Leaderboard"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
         "controller.SwaggerSuccessResponse": {
             "description": "Успешный ответ с сообщением для Swagger",
             "type": "object",
@@ -601,13 +842,36 @@ const docTemplate = `{
                 }
             }
         },
-        "controller.SwaggerUserProfileResponse": {
-            "description": "Ответ с данными профиля пользователя",
+        "controller.SwaggerUpdateUserResponse": {
+            "description": "Ответ с сообщением об успешном обновлении",
             "type": "object",
             "properties": {
                 "data": {
                     "type": "object",
                     "properties": {
+                        "message": {
+                            "type": "string",
+                            "example": "Данные пользователя успешно обновлены"
+                        }
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "controller.SwaggerUserProfileWithStatsResponse": {
+            "description": "Расширенный ответ с данными профиля пользователя и статистикой",
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "experience": {
+                            "type": "integer",
+                            "example": 1250
+                        },
                         "first_name": {
                             "type": "string",
                             "example": "John"
@@ -619,6 +883,35 @@ const docTemplate = `{
                         "last_name": {
                             "type": "string",
                             "example": "Doe"
+                        },
+                        "stats": {
+                            "type": "object",
+                            "properties": {
+                                "average_completion": {
+                                    "type": "number",
+                                    "example": 120.5
+                                },
+                                "average_experience": {
+                                    "type": "number",
+                                    "example": 83.33
+                                },
+                                "fastest_completion": {
+                                    "type": "integer",
+                                    "example": 85
+                                },
+                                "max_experience": {
+                                    "type": "integer",
+                                    "example": 150
+                                },
+                                "total_experience": {
+                                    "type": "integer",
+                                    "example": 1250
+                                },
+                                "total_lessons": {
+                                    "type": "integer",
+                                    "example": 15
+                                }
+                            }
                         },
                         "username": {
                             "type": "string",
@@ -678,16 +971,51 @@ const docTemplate = `{
                 }
             }
         },
-        "controller.saveResultRequest": {
+        "controller.updateUserRequest": {
+            "description": "Запрос на обновление данных пользователя",
             "type": "object",
             "properties": {
-                "lesson_id": {
-                    "type": "string",
-                    "example": "1"
+                "first_name": {
+                    "type": "string"
                 },
-                "time_taken": {
-                    "type": "integer",
-                    "example": 120
+                "last_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "repository.LessonLeaderboardEntry": {
+            "type": "object",
+            "properties": {
+                "completion_time": {
+                    "description": "Время прохождения урока в секундах",
+                    "type": "integer"
+                },
+                "experience": {
+                    "description": "Полученный опыт",
+                    "type": "integer"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "score": {
+                    "description": "Баллы за урок (время в секундах)",
+                    "type": "integer"
+                },
+                "trend": {
+                    "description": "Тренд изменения позиции",
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },
@@ -710,20 +1038,6 @@ const docTemplate = `{
                 },
                 "success": {
                     "type": "boolean"
-                }
-            }
-        },
-        "service.Leaderboard": {
-            "type": "object",
-            "properties": {
-                "results": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/service.Result"
-                    }
-                },
-                "userPosition": {
-                    "type": "integer"
                 }
             }
         },
@@ -758,23 +1072,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "level": {
-                    "type": "integer"
-                }
-            }
-        },
-        "service.Result": {
-            "type": "object",
-            "properties": {
-                "position": {
-                    "type": "integer"
-                },
-                "timeTaken": {
-                    "type": "integer"
-                },
-                "username": {
-                    "type": "string"
-                },
-                "xp": {
                     "type": "integer"
                 }
             }

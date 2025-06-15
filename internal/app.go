@@ -204,13 +204,15 @@ func (app *Application) initControllers() error {
 		lessonsGroup.GET("/:id", lessonHandler.GetLesson)
 
 		// Эндпоинт завершения урока (требует JWT)
-		completionHandler := controller.NewLessonCompletionController(lessonCompletionService, logger)
+		completionHandler := controller.NewLessonCompletionController(lessonCompletionService, leaderboardService, logger)
 		lessonsGroup.POST("/complete", completionHandler.Complete, jwtMiddleware)
 
 		// Эндпоинты для таблицы лидеров
 		leaderboardGroup := api.Group("/leaderboard")
 		leaderboardHandler := controller.NewLeaderboardController(leaderboardService, logger)
 		leaderboardGroup.GET("", leaderboardHandler.GetLeaderboard)
+		leaderboardGroup.GET("/extended", leaderboardHandler.GetExtendedLeaderboard)
+		leaderboardGroup.GET("/lesson/:lesson_id", leaderboardHandler.GetLessonLeaderboard, jwtMiddleware)
 
 		// Эндпоинт для обновления рейтингов (доступен только с JWT)
 		leaderboardAdminGroup := api.Group("/admin/leaderboard", jwtMiddleware)
