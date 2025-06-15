@@ -6,9 +6,20 @@ import (
 	"gorm.io/gorm"
 )
 
+// UserStats содержит статистику пользователя
+type UserStats struct {
+	TotalLessons      int     // Общее количество пройденных уроков
+	TotalExperience   uint64  // Общий полученный опыт
+	AverageExperience float64 // Средний опыт за урок
+	MaxExperience     uint64  // Максимальный опыт за урок
+	FastestCompletion string  // Самое быстрое время завершения (формат MM:SS)
+	AverageCompletion float64 // Среднее время завершения (в секундах)
+}
+
 type ResultRepository interface {
 	Create(result *Result) error
 	GetLeaderboardAroundUser(userID uint, lessonID string, limit uint) ([]Result, int, error)
+	GetUserStats(userID uint) (*UserStats, error)
 }
 
 type resultRepo struct {
@@ -66,4 +77,63 @@ func (r *resultRepo) GetLeaderboardAroundUser(userID uint, lessonID string, limi
 		Find(&results).Error
 
 	return results, int(userPosition), err
+}
+
+// GetUserStats возвращает статистику пользователя на основе его результатов
+func (r *resultRepo) GetUserStats(userID uint) (*UserStats, error) {
+	var stats UserStats
+
+	// Получаем общее количество пройденных уроков
+	err := r.db.Model(&Result{}).Where("user_id = ?", userID).Count(&stats.TotalLessons).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Если уроков нет, возвращаем пустую статистику
+	if stats.TotalLessons == 0 {
+		return &stats, nil
+	}
+
+	// Получаем общий опыт
+	err = r.db.Model(&Result{}).
+		Select("COALESCE(SUM(added_experience), 0)").
+		Where("user_id = ?", userID).
+		Scan(&stats.TotalExperience).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Получаем максимальный опыт за урок
+	err = r.db.Model(&Result{}).
+		Select("COALESCE(MAX(added_experience), 0)").
+		Where("user_id = ?", userID).
+		Scan(&stats.MaxExperience).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Вычисляем средний опыт
+	if stats.TotalLessons > 0 {
+		stats.AverageExperience = float64(stats.TotalExperience) / float64(stats.TotalLessons)
+	}
+
+	// Получаем самое быстрое время завершения
+	var fastestResult Result
+	err = r.db.Where("user_id = ?", userID).
+		Order("score").Limit(1).Find(&fastestResult).Error
+	if err != nil {
+		return nil, err
+	}
+	stats.FastestCompletion = fastestResult.CompletionTime
+
+	// Получаем среднее время завершения (в секундах)
+	err = r.db.Model(&Result{}).
+		Select("COALESCE(AVG(score), 0)").
+		Where("user_id = ?", userID).
+		Scan(&stats.AverageCompletion).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &stats, nil
 }

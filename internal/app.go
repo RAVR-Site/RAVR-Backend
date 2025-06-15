@@ -140,8 +140,8 @@ func (app *Application) initRepositories() error {
 }
 
 func (app *Application) initServices() error {
-	if err := app.container.Provide(func(repo repository.UserRepository, logger *zap.Logger) service.UserService {
-		return service.NewUserService(repo, app.config.JWTSecret, app.config.JWTAccessExpiration, logger)
+	if err := app.container.Provide(func(repo repository.UserRepository, resultRepo repository.ResultRepository, logger *zap.Logger) service.UserService {
+		return service.NewUserService(repo, resultRepo, app.config.JWTSecret, app.config.JWTAccessExpiration, logger)
 	}); err != nil {
 		return err
 	}
