@@ -106,6 +106,18 @@ func (app *Application) Init() error {
 		return err
 	}
 
+	// Инициализация локального хранилища файлов
+	if err := app.container.Provide(func() (storage.Storage, error) {
+		// Создаем директорию для хранения файлов, если она не существует
+		if err := os.MkdirAll(filepath.Join("uploads", "avatars"), os.ModePerm); err != nil {
+			return nil, err
+		}
+
+		return local.NewLocalStorage("uploads", "http://localhost:"+app.config.Port+"/uploads")
+	}); err != nil {
+		return err
+	}
+
 	if err := app.initRepositories(); err != nil {
 		return err
 	}
@@ -115,18 +127,6 @@ func (app *Application) Init() error {
 	}
 
 	if err := app.initControllers(); err != nil {
-		return err
-	}
-
-	// Инициализация локального хранилища файлов
-	if err := app.container.Provide(func() (storage.FileStorage, error) {
-		// Создаем директорию для хранения файлов, если она не существует
-		if err := os.MkdirAll(filepath.Join("uploads", "avatars"), os.ModePerm); err != nil {
-			return nil, err
-		}
-
-		return local.NewFileStorage("uploads/avatars"), nil
-	}); err != nil {
 		return err
 	}
 
