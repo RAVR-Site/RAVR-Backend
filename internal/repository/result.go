@@ -20,6 +20,8 @@ type ResultRepository interface {
 	Create(result *Result) error
 	GetLeaderboardAroundUser(userID uint, lessonID string, limit uint) ([]Result, int, error)
 	GetUserStats(userID uint) (*UserStats, error)
+	GetResultByUserAndLesson(userID uint, lessonID string) (*Result, error)
+	Update(result *Result) error
 }
 
 type resultRepo struct {
@@ -137,4 +139,19 @@ func (r *resultRepo) GetUserStats(userID uint) (*UserStats, error) {
 	}
 
 	return &stats, nil
+}
+
+// GetResultByUserAndLesson получает результат пользователя для конкретного урока
+func (r *resultRepo) GetResultByUserAndLesson(userID uint, lessonID string) (*Result, error) {
+	var result Result
+	err := r.db.Where("user_id = ? AND lesson_id = ?", userID, lessonID).First(&result).Error
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// Update обновляет существующий результат
+func (r *resultRepo) Update(result *Result) error {
+	return r.db.Save(result).Error
 }

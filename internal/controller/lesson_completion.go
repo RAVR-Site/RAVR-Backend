@@ -39,7 +39,6 @@ func NewLessonCompletionController(
 
 // CompleteLessonResponse представляет ответ на запрос завершения урока
 type CompleteLessonResponse struct {
-	Success       bool   `json:"success"`
 	Experience    uint64 `json:"experience"`    // Текущий опыт пользователя
 	EarnedXP      uint64 `json:"earnedXP"`      // Заработанный опыт за текущий урок
 	CompletedTime uint64 `json:"completedTime"` // Время завершения урока в секундах
@@ -88,7 +87,6 @@ func (c *LessonCompletionController) Complete(e echo.Context) error {
 	}
 
 	response := CompleteLessonResponse{
-		Success:       true,
 		Experience:    result.TotalExperience,
 		EarnedXP:      result.EarnedExperience,
 		CompletedTime: result.CompletionTime,

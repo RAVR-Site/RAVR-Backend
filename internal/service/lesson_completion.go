@@ -93,22 +93,53 @@ func (s *lessonCompletionService) CompleteLessonAndUpdateExperience(
 		return nil, err
 	}
 
-	// Записываем результат прохождения урока
 	now := time.Now()
-	result := &repository.Result{
-		UserID:          userID,
-		LessonID:        lessonID,
-		Score:           earnedExperience, // Используем заработанный опыт как счет
-		CompletedAt:     now,
-		CompletionTime:  completionTime, // Сохраняем время завершения в секундах
-		AddedExperience: earnedExperience,
-		XP:              earnedExperience, // Заполняем устаревшее поле для обратной совместимости
-	}
 
-	err = s.resultRepo.Create(result)
-	if err != nil {
-		s.logger.Error("Error creating result record", zap.Error(err), zap.Uint("userId", userID), zap.String("lessonId", lessonID))
-		return nil, err
+	// Проверяем, существует ли уже результат для данного пользователя и урока
+	existingResult, err := s.resultRepo.GetResultByUserAndLesson(userID, lessonID)
+
+	// Если запись существует, обновляем её
+	if err == nil && existingResult != nil {
+		existingResult.Score = earnedExperience // Обновляем счет
+		existingResult.CompletedAt = now        // Обновляем время завершения
+		existingResult.CompletionTime = completionTime
+		existingResult.AddedExperience = earnedExperience // Обновляем добавленный опыт
+		existingResult.XP = earnedExperience              // Обновляем XP для обратной совместимости
+
+		err = s.resultRepo.Update(existingResult)
+		if err != nil {
+			s.logger.Error("Error updating existing result", zap.Error(err), zap.Uint("userId", userID), zap.String("lessonId", lessonID))
+			return nil, err
+		}
+
+		s.logger.Info("Existing lesson result updated",
+			zap.Uint("userId", userID),
+			zap.String("lessonId", lessonID),
+			zap.Uint64("completionTime", completionTime),
+			zap.Uint64("earnedExperience", earnedExperience))
+	} else {
+		// Если записи нет, создаем новую
+		result := &repository.Result{
+			UserID:          userID,
+			LessonID:        lessonID,
+			Score:           earnedExperience, // Используем заработанный опыт как счет
+			CompletedAt:     now,
+			CompletionTime:  completionTime, // Сохраняем время завершения в секундах
+			AddedExperience: earnedExperience,
+			XP:              earnedExperience, // Заполняем устаревшее поле для обратной совместимости
+		}
+
+		err = s.resultRepo.Create(result)
+		if err != nil {
+			s.logger.Error("Error creating result record", zap.Error(err), zap.Uint("userId", userID), zap.String("lessonId", lessonID))
+			return nil, err
+		}
+
+		s.logger.Info("New lesson result created",
+			zap.Uint("userId", userID),
+			zap.String("lessonId", lessonID),
+			zap.Uint64("completionTime", completionTime),
+			zap.Uint64("earnedExperience", earnedExperience))
 	}
 
 	// Формируем результат
