@@ -7,9 +7,11 @@ import (
 )
 
 type User struct {
-	ID       uint   `gorm:"primaryKey"`
-	Username string `gorm:"unique;not null"`
-	Password string `gorm:"not null"`
+	ID        uint   `gorm:"primaryKey"`
+	Username  string `gorm:"unique;not null"`
+	Password  string `gorm:"not null"`
+	FirstName string `gorm:"column:first_name"`
+	LastName  string `gorm:"column:last_name"`
 }
 
 type UserRepository interface {
