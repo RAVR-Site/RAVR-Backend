@@ -10,21 +10,30 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// UserProfileStats содержит данные профиля пользователя со статистикой
+type UserProfileStats struct {
+	User  *repository.User      // Данные пользователя
+	Stats *repository.UserStats // Статистика пользователя
+}
+
 type UserService interface {
 	Register(username, password, firstName, lastName string) error
 	Login(username, password string) (string, error)
 	GetByUsername(username string) (*repository.User, error)
+	UpdateUser(username string, firstName, lastName string) error
+	GetUserProfileWithStats(username string) (*UserProfileStats, error)
 }
 
 type service struct {
 	repo       repository.UserRepository
+	resultRepo repository.ResultRepository
 	jwtManager *auth.JWTManager
 	logger     *zap.Logger
 }
 
-func NewUserService(repo repository.UserRepository, jwtSecret string, jwtAccessExpiration int, logger *zap.Logger) UserService {
+func NewUserService(repo repository.UserRepository, resultRepo repository.ResultRepository, jwtSecret string, jwtAccessExpiration int, logger *zap.Logger) UserService {
 	jwtManager := auth.NewJWTManager(jwtSecret, jwtAccessExpiration)
-	return &service{repo, jwtManager, logger}
+	return &service{repo, resultRepo, jwtManager, logger}
 }
 
 func (s *service) Register(username, password, firstName, lastName string) error {
@@ -72,4 +81,61 @@ func (s *service) Login(username, password string) (string, error) {
 
 func (s *service) GetByUsername(username string) (*repository.User, error) {
 	return s.repo.FindByUsername(username)
+}
+
+// UpdateUser обновляет данные пользователя
+func (s *service) UpdateUser(username string, firstName, lastName string) error {
+	// Проверяем, существует ли пользователь
+	user, err := s.repo.FindByUsername(username)
+	if err != nil || user == nil {
+		return errors.New("пользователь не найден")
+	}
+
+	// Подготавливаем данные для обновления
+	userData := map[string]interface{}{}
+
+	if firstName != "" {
+		userData["first_name"] = firstName
+	}
+
+	if lastName != "" {
+		userData["last_name"] = lastName
+	}
+
+	// Если нет данных для обновления, возвращаем nil
+	if len(userData) == 0 {
+		return nil
+	}
+
+	// Обновляем пользователя в репозитории
+	err = s.repo.Update(username, userData)
+	if err != nil {
+		s.logger.Error("failed to update user",
+			zap.String("username", username),
+			zap.Error(err))
+		return errors.New("ошибка при обновлении данных пользователя")
+	}
+
+	return nil
+}
+
+// GetUserProfileWithStats возвращает профиль пользователя вместе со статистикой
+func (s *service) GetUserProfileWithStats(username string) (*UserProfileStats, error) {
+	user, err := s.repo.FindByUsername(username)
+	if err != nil || user == nil {
+		return nil, errors.New("пользователь не найден")
+	}
+
+	stats, err := s.resultRepo.GetUserStats(user.ID)
+	if err != nil {
+		s.logger.Error("ошибка при получении статистики пользователя",
+			zap.Error(err),
+			zap.String("username", username))
+		return nil, errors.New("ошибка при получении статистики пользователя")
+	}
+
+	return &UserProfileStats{
+		User:  user,
+		Stats: stats,
+	}, nil
 }

@@ -37,6 +37,40 @@ type SwaggerUserProfileResponse struct {
 	} `json:"data"`
 }
 
+// @Description Расширенный ответ с данными профиля пользователя и статистикой
+type SwaggerUserProfileWithStatsResponse struct {
+	Success bool `json:"success" example:"true"`
+	Data    struct {
+		ID        uint   `json:"id" example:"1"`
+		Username  string `json:"username" example:"johndoe"`
+		FirstName string `json:"first_name,omitempty" example:"John"`
+		LastName  string `json:"last_name,omitempty" example:"Doe"`
+		Stats     struct {
+			TotalLessons      int64   `json:"total_lessons" example:"15"`
+			TotalExperience   uint64  `json:"total_experience" example:"1250"`
+			AverageExperience float64 `json:"average_experience" example:"83.33"`
+			MaxExperience     uint64  `json:"max_experience" example:"150"`
+			FastestCompletion uint64  `json:"fastest_completion" example:"85"`
+			AverageCompletion float64 `json:"average_completion" example:"120.5"`
+		} `json:"stats"`
+		Experience uint64 `json:"experience" example:"1250"`
+	} `json:"data"`
+}
+
+// @Description Запрос на обновление данных пользователя
+type updateUserRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}
+
+// @Description Ответ с сообщением об успешном обновлении
+type SwaggerUpdateUserResponse struct {
+	Success bool `json:"success" example:"true"`
+	Data    struct {
+		Message string `json:"message" example:"Данные пользователя успешно обновлены"`
+	} `json:"data"`
+}
+
 // Request structs
 // @Description Запрос на регистрацию нового пользователя
 type registerRequest struct {
@@ -122,12 +156,12 @@ func (h *UserController) Login(c echo.Context) error {
 
 // Profile возвращает информацию о текущем пользователе
 // @Summary Профиль пользователя
-// @Description Возвращает данные текущего аутентифицированного пользователя
+// @Description Возвращает данные текущего аутентифицированного пользователя с статистикой
 // @Tags auth
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} SwaggerUserProfileResponse
+// @Success 200 {object} SwaggerUserProfileWithStatsResponse
 // @Failure 401 {object} responses.ErrorResponse
 // @Failure 500 {object} responses.ErrorResponse
 // @Router /auth/user [get]
@@ -135,7 +169,8 @@ func (h *UserController) Profile(c echo.Context) error {
 	// Получаем username из контекста (установлено JWT middleware)
 	username := c.Get("username").(string)
 
-	u, err := h.svc.GetByUsername(username)
+	// Получаем профиль пользователя со статистикой
+	profileWithStats, err := h.svc.GetUserProfileWithStats(username)
 	if err != nil {
 		h.logger.Error("failed to get user profile",
 			zap.String("username", username),
@@ -143,17 +178,70 @@ func (h *UserController) Profile(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, responses.Error("SERVER_ERROR", err.Error()))
 	}
 
+	// Формируем ответ
 	userResp := struct {
 		ID        uint   `json:"id"`
 		Username  string `json:"username"`
 		FirstName string `json:"first_name,omitempty"`
 		LastName  string `json:"last_name,omitempty"`
+		Stats     struct {
+			TotalLessons      int64   `json:"total_lessons"`
+			TotalExperience   uint64  `json:"total_experience"`
+			AverageExperience float64 `json:"average_experience"`
+			MaxExperience     uint64  `json:"max_experience"`
+			FastestCompletion uint64  `json:"fastest_completion"`
+			AverageCompletion float64 `json:"average_completion"`
+		} `json:"stats"`
+		Experience uint64 `json:"experience"`
 	}{
-		ID:        u.ID,
-		Username:  u.Username,
-		FirstName: u.FirstName,
-		LastName:  u.LastName,
+		ID:         profileWithStats.User.ID,
+		Username:   profileWithStats.User.Username,
+		FirstName:  profileWithStats.User.FirstName,
+		LastName:   profileWithStats.User.LastName,
+		Experience: profileWithStats.User.Experience,
 	}
 
+	// Копируем данные статистики
+	userResp.Stats.TotalLessons = profileWithStats.Stats.TotalLessons
+	userResp.Stats.TotalExperience = profileWithStats.Stats.TotalExperience
+	userResp.Stats.AverageExperience = profileWithStats.Stats.AverageExperience
+	userResp.Stats.MaxExperience = profileWithStats.Stats.MaxExperience
+	userResp.Stats.FastestCompletion = profileWithStats.Stats.FastestCompletion
+	userResp.Stats.AverageCompletion = profileWithStats.Stats.AverageCompletion
+
 	return c.JSON(http.StatusOK, responses.Success(userResp))
+}
+
+// UpdateUser обновляет данные текущего пользователя
+// @Summary Обновление данных пользователя
+// @Description Обновляет имя и фамилию текущего аутентифицированного пользователя
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body updateUserRequest true "Данные для обновления"
+// @Success 200 {object} SwaggerUpdateUserResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 401 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
+// @Router /auth/user [put]
+func (h *UserController) UpdateUser(c echo.Context) error {
+	// Получаем username из контекста (установлено JWT middleware)
+	username := c.Get("username").(string)
+
+	var req updateUserRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, responses.Error("INVALID_REQUEST", err.Error()))
+	}
+
+	// Обновляем данные пользователя
+	err := h.svc.UpdateUser(username, req.FirstName, req.LastName)
+	if err != nil {
+		h.logger.Error("failed to update user",
+			zap.String("username", username),
+			zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, responses.Error("UPDATE_ERROR", err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, responses.MessageResponse("Данные пользователя успешно обновлены"))
 }
