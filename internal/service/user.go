@@ -2,9 +2,11 @@ package service
 
 import (
 	"errors"
+	"mime/multipart"
 
 	"github.com/Ravr-Site/Ravr-Backend/internal/auth"
 	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
+	"github.com/Ravr-Site/Ravr-Backend/internal/storage"
 
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -22,18 +24,20 @@ type UserService interface {
 	GetByUsername(username string) (*repository.User, error)
 	UpdateUser(username string, firstName, lastName string) error
 	GetUserProfileWithStats(username string) (*UserProfileStats, error)
+	UpdateAvatar(username string, file *multipart.FileHeader) (string, error)
 }
 
 type service struct {
-	repo       repository.UserRepository
-	resultRepo repository.ResultRepository
-	jwtManager *auth.JWTManager
-	logger     *zap.Logger
+	repo        repository.UserRepository
+	resultRepo  repository.ResultRepository
+	jwtManager  *auth.JWTManager
+	fileStorage storage.Storage
+	logger      *zap.Logger
 }
 
-func NewUserService(repo repository.UserRepository, resultRepo repository.ResultRepository, jwtSecret string, jwtAccessExpiration int, logger *zap.Logger) UserService {
+func NewUserService(repo repository.UserRepository, resultRepo repository.ResultRepository, fileStorage storage.Storage, jwtSecret string, jwtAccessExpiration int, logger *zap.Logger) UserService {
 	jwtManager := auth.NewJWTManager(jwtSecret, jwtAccessExpiration)
-	return &service{repo, resultRepo, jwtManager, logger}
+	return &service{repo, resultRepo, jwtManager, fileStorage, logger}
 }
 
 func (s *service) Register(username, password, firstName, lastName string) error {
@@ -138,4 +142,71 @@ func (s *service) GetUserProfileWithStats(username string) (*UserProfileStats, e
 		User:  user,
 		Stats: stats,
 	}, nil
+}
+
+// UpdateAvatar обновляет аватар пользователя
+func (s *service) UpdateAvatar(username string, file *multipart.FileHeader) (string, error) {
+	// Проверка существования пользователя
+	user, err := s.repo.FindByUsername(username)
+	if err != nil || user == nil {
+		return "", errors.New("пользователь не найден")
+	}
+
+	// Проверка типа файла (только изображения)
+	contentType := file.Header.Get("Content-Type")
+	if !isImageContentType(contentType) {
+		return "", errors.New("разрешены только файлы изображений")
+	}
+
+	// Если у пользователя уже есть аватарка, удаляем её
+	if user.AvatarURL != "" {
+		if err := s.fileStorage.DeleteFile(user.AvatarURL); err != nil {
+			s.logger.Warn("Ошибка при удалении предыдущего аватара",
+				zap.String("username", username),
+				zap.String("avatarURL", user.AvatarURL),
+				zap.Error(err))
+		}
+	}
+
+	// Сохраняем новый файл аватара
+	avatarPath, err := s.fileStorage.SaveFile(file, "avatars")
+	if err != nil {
+		s.logger.Error("Ошибка при сохранении аватара",
+			zap.String("username", username),
+			zap.Error(err))
+		return "", errors.New("ошибка при сохранении аватара")
+	}
+
+	// Обновляем путь к аватару в профиле пользователя
+	userData := map[string]interface{}{
+		"avatar_url": avatarPath,
+	}
+
+	if err := s.repo.Update(username, userData); err != nil {
+		s.logger.Error("Ошибка при обновлении аватара пользователя в БД",
+			zap.String("username", username),
+			zap.Error(err))
+		return "", errors.New("ошибка при обновлении данных пользователя")
+	}
+
+	// Возвращаем полный URL аватара
+	return s.fileStorage.GetFileURL(avatarPath), nil
+}
+
+// isImageContentType проверяет, является ли тип содержимого изображением
+func isImageContentType(contentType string) bool {
+	allowedTypes := []string{
+		"image/jpeg",
+		"image/png",
+		"image/gif",
+		"image/webp",
+	}
+
+	for _, allowedType := range allowedTypes {
+		if contentType == allowedType {
+			return true
+		}
+	}
+
+	return false
 }

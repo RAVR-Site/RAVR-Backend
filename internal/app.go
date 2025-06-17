@@ -3,6 +3,7 @@ package internal
 import (
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/Ravr-Site/Ravr-Backend/config"
 	"github.com/Ravr-Site/Ravr-Backend/internal/controller"
@@ -10,6 +11,8 @@ import (
 	"github.com/Ravr-Site/Ravr-Backend/internal/repository"
 	"github.com/Ravr-Site/Ravr-Backend/internal/responses"
 	"github.com/Ravr-Site/Ravr-Backend/internal/service"
+	"github.com/Ravr-Site/Ravr-Backend/internal/storage"
+	"github.com/Ravr-Site/Ravr-Backend/internal/storage/local"
 	"github.com/labstack/echo/v4"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -103,6 +106,18 @@ func (app *Application) Init() error {
 		return err
 	}
 
+	// Инициализация локального хранилища файлов
+	if err := app.container.Provide(func() (storage.Storage, error) {
+		// Создаем директорию для хранения файлов, если она не существует
+		if err := os.MkdirAll(filepath.Join("uploads", "avatars"), os.ModePerm); err != nil {
+			return nil, err
+		}
+
+		return local.NewLocalStorage("uploads", "http://localhost:"+app.config.Port+"/uploads")
+	}); err != nil {
+		return err
+	}
+
 	if err := app.initRepositories(); err != nil {
 		return err
 	}
@@ -140,8 +155,8 @@ func (app *Application) initRepositories() error {
 }
 
 func (app *Application) initServices() error {
-	if err := app.container.Provide(func(repo repository.UserRepository, resultRepo repository.ResultRepository, logger *zap.Logger) service.UserService {
-		return service.NewUserService(repo, resultRepo, app.config.JWTSecret, app.config.JWTAccessExpiration, logger)
+	if err := app.container.Provide(func(repo repository.UserRepository, resultRepo repository.ResultRepository, fileStorage storage.Storage, logger *zap.Logger) service.UserService {
+		return service.NewUserService(repo, resultRepo, fileStorage, app.config.JWTSecret, app.config.JWTAccessExpiration, logger)
 	}); err != nil {
 		return err
 	}
@@ -197,6 +212,7 @@ func (app *Application) initControllers() error {
 		authGroup.POST("/register", userHandler.Register)
 		authGroup.GET("/user", userHandler.Profile, jwtMiddleware)
 		authGroup.PUT("/user", userHandler.UpdateUser, jwtMiddleware)
+		authGroup.POST("/avatar", userHandler.UpdateAvatar, jwtMiddleware)
 
 		lessonsGroup := api.Group("/lessons")
 		lessonHandler := controller.NewLessonController(lessonService, logger)

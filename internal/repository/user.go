@@ -13,6 +13,7 @@ type User struct {
 	FirstName  string `gorm:"column:first_name"`
 	LastName   string `gorm:"column:last_name"`
 	Experience uint64 `gorm:"column:experience;default:0"` // Опыт пользователя
+	AvatarURL  string `gorm:"column:avatar_url"`           // URL аватарки пользователя
 }
 
 type UserRepository interface {

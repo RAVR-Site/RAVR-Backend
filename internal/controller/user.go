@@ -184,6 +184,7 @@ func (h *UserController) Profile(c echo.Context) error {
 		Username  string `json:"username"`
 		FirstName string `json:"first_name,omitempty"`
 		LastName  string `json:"last_name,omitempty"`
+		AvatarURL string `json:"avatar_url,omitempty"`
 		Stats     struct {
 			TotalLessons      int64   `json:"total_lessons"`
 			TotalExperience   uint64  `json:"total_experience"`
@@ -198,6 +199,7 @@ func (h *UserController) Profile(c echo.Context) error {
 		Username:   profileWithStats.User.Username,
 		FirstName:  profileWithStats.User.FirstName,
 		LastName:   profileWithStats.User.LastName,
+		AvatarURL:  profileWithStats.User.AvatarURL,
 		Experience: profileWithStats.User.Experience,
 	}
 
@@ -244,4 +246,58 @@ func (h *UserController) UpdateUser(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, responses.MessageResponse("Данные пользователя успешно обновлены"))
+}
+
+// @Description Успешный ответ с URL аватара
+type SwaggerAvatarResponse struct {
+	Success bool `json:"success" example:"true"`
+	Data    struct {
+		AvatarURL string `json:"avatar_url" example:"http://example.com/avatars/user1.jpg"`
+	} `json:"data"`
+}
+
+// UpdateAvatar загружает и обновляет аватар пользователя
+// @Summary Загрузка аватара пользователя
+// @Description Загружает изображение и устанавливает его как аватар текущего пользователя
+// @Tags auth
+// @Accept multipart/form-data
+// @Produce json
+// @Security BearerAuth
+// @Param avatar formData file true "Файл изображения для аватара (JPG, PNG, GIF, BMP, WEBP)"
+// @Success 200 {object} SwaggerAvatarResponse
+// @Failure 400 {object} responses.ErrorResponse
+// @Failure 401 {object} responses.ErrorResponse
+// @Failure 500 {object} responses.ErrorResponse
+// @Router /auth/avatar [post]
+func (h *UserController) UpdateAvatar(c echo.Context) error {
+	// Получаем username из контекста (установлено JWT middleware)
+	username := c.Get("username").(string)
+
+	// Получаем загруженный файл из формы
+	file, err := c.FormFile("avatar")
+	if err != nil {
+		h.logger.Error("failed to get avatar file",
+			zap.String("username", username),
+			zap.Error(err))
+		return c.JSON(http.StatusBadRequest, responses.Error("INVALID_REQUEST", "Не удалось получить файл аватара"))
+	}
+
+	// Проверяем размер файла (например, максимум 5MB)
+	if file.Size > 5*1024*1024 {
+		return c.JSON(http.StatusBadRequest, responses.Error("INVALID_REQUEST", "Размер файла превышает максимально допустимый (5MB)"))
+	}
+
+	// Обновляем аватар с помощью сервиса
+	avatarURL, err := h.svc.UpdateAvatar(username, file)
+	if err != nil {
+		h.logger.Error("failed to update avatar",
+			zap.String("username", username),
+			zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, responses.Error("AVATAR_UPDATE_ERROR", err.Error()))
+	}
+
+	// Формируем успешный ответ
+	return c.JSON(http.StatusOK, responses.Success(map[string]string{
+		"avatar_url": avatarURL,
+	}))
 }
